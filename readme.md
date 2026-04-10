@@ -31,8 +31,8 @@ Nossa automação atuará como um "middleware" (um intermediário) entre o GLPI 
   - [x] Implementar um gerenciador de contatos
 
 - [ ] Fase 3: Integração com WhatsApp. Definir e implementar a biblioteca/serviço para envio da mensagem.
-  - [ ] Instalar a Evolution API
-  - [ ] 
+  - [x] Subir a Evolution API
+    - [x] Configurar o arquivo *docker-compose.yml*
 
 - [ ] Fase 4: Loop e Deploy. Colocar o script para rodar em background (como um serviço no servidor) de forma contínua e tratar exceções (o que acontece se a internet cair? O script não pode parar de rodar).
 

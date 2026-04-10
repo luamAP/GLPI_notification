@@ -23,7 +23,7 @@ services:
       # ==========================================
       - DATABASE_ENABLED=true
       - DATABASE_PROVIDER=postgresql
-      - DATABASE_CONNECTION_URI=postgresql://admin:admin123@postgres:5432/evolution?schema=public
+      - DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
       - DATABASE_CONNECTION_CLIENT_NAME=evolution_exchange
       
     depends_on:
