@@ -1,0 +1,324 @@
+Listagem de caminhos de pasta
+O n£mero de s‚rie do volume ‚ C0000100 3A58:F045
+C:.
+³   .env
+³   .gitignore
+³   .python-version
+³   dir_projeto.txt
+³   docker-compose.yaml
+³   glpi_monitor.py
+³   main.py
+³   pyproject.toml
+³   qrcode_temp.html
+³   readme.md
+³   tecnicos.json
+³   uv.lock
+³   workspace.code-workspace
+³   
+ÃÄÄÄ.venv
+³   ³   .gitignore
+³   ³   .lock
+³   ³   CACHEDIR.TAG
+³   ³   pyvenv.cfg
+³   ³   
+³   ÃÄÄÄLib
+³   ³   ÀÄÄÄsite-packages
+³   ³       ³   81d243bd2c585b0f4821__mypyc.cp312-win_amd64.pyd
+³   ³       ³   _virtualenv.pth
+³   ³       ³   _virtualenv.py
+³   ³       ³   
+³   ³       ÃÄÄÄcertifi
+³   ³       ³   ³   cacert.pem
+³   ³       ³   ³   core.py
+³   ³       ³   ³   py.typed
+³   ³       ³   ³   __init__.py
+³   ³       ³   ³   __main__.py
+³   ³       ³   ³   
+³   ³       ³   ÀÄÄÄ__pycache__
+³   ³       ³           core.cpython-312.pyc
+³   ³       ³           __init__.cpython-312.pyc
+³   ³       ³           
+³   ³       ÃÄÄÄcertifi-2026.2.25.dist-info
+³   ³       ³   ³   INSTALLER
+³   ³       ³   ³   METADATA
+³   ³       ³   ³   RECORD
+³   ³       ³   ³   REQUESTED
+³   ³       ³   ³   top_level.txt
+³   ³       ³   ³   WHEEL
+³   ³       ³   ³   
+³   ³       ³   ÀÄÄÄlicenses
+³   ³       ³           LICENSE
+³   ³       ³           
+³   ³       ÃÄÄÄcharset_normalizer
+³   ³       ³   ³   api.py
+³   ³       ³   ³   cd.cp312-win_amd64.pyd
+³   ³       ³   ³   cd.py
+³   ³       ³   ³   constant.py
+³   ³       ³   ³   legacy.py
+³   ³       ³   ³   md.cp312-win_amd64.pyd
+³   ³       ³   ³   md.py
+³   ³       ³   ³   models.py
+³   ³       ³   ³   py.typed
+³   ³       ³   ³   utils.py
+³   ³       ³   ³   version.py
+³   ³       ³   ³   __init__.py
+³   ³       ³   ³   __main__.py
+³   ³       ³   ³   
+³   ³       ³   ÃÄÄÄcli
+³   ³       ³   ³       __init__.py
+³   ³       ³   ³       __main__.py
+³   ³       ³   ³       
+³   ³       ³   ÀÄÄÄ__pycache__
+³   ³       ³           api.cpython-312.pyc
+³   ³       ³           constant.cpython-312.pyc
+³   ³       ³           legacy.cpython-312.pyc
+³   ³       ³           models.cpython-312.pyc
+³   ³       ³           utils.cpython-312.pyc
+³   ³       ³           version.cpython-312.pyc
+³   ³       ³           __init__.cpython-312.pyc
+³   ³       ³           
+³   ³       ÃÄÄÄcharset_normalizer-3.4.6.dist-info
+³   ³       ³   ³   entry_points.txt
+³   ³       ³   ³   INSTALLER
+³   ³       ³   ³   METADATA
+³   ³       ³   ³   RECORD
+³   ³       ³   ³   REQUESTED
+³   ³       ³   ³   top_level.txt
+³   ³       ³   ³   WHEEL
+³   ³       ³   ³   
+³   ³       ³   ÀÄÄÄlicenses
+³   ³       ³           LICENSE
+³   ³       ³           
+³   ³       ÃÄÄÄdotenv
+³   ³       ³   ³   cli.py
+³   ³       ³   ³   ipython.py
+³   ³       ³   ³   main.py
+³   ³       ³   ³   parser.py
+³   ³       ³   ³   py.typed
+³   ³       ³   ³   variables.py
+³   ³       ³   ³   version.py
+³   ³       ³   ³   __init__.py
+³   ³       ³   ³   __main__.py
+³   ³       ³   ³   
+³   ³       ³   ÀÄÄÄ__pycache__
+³   ³       ³           main.cpython-312.pyc
+³   ³       ³           parser.cpython-312.pyc
+³   ³       ³           variables.cpython-312.pyc
+³   ³       ³           __init__.cpython-312.pyc
+³   ³       ³           
+³   ³       ÃÄÄÄidna
+³   ³       ³   ³   codec.py
+³   ³       ³   ³   compat.py
+³   ³       ³   ³   core.py
+³   ³       ³   ³   idnadata.py
+³   ³       ³   ³   intranges.py
+³   ³       ³   ³   package_data.py
+³   ³       ³   ³   py.typed
+³   ³       ³   ³   uts46data.py
+³   ³       ³   ³   __init__.py
+³   ³       ³   ³   
+³   ³       ³   ÀÄÄÄ__pycache__
+³   ³       ³           core.cpython-312.pyc
+³   ³       ³           idnadata.cpython-312.pyc
+³   ³       ³           intranges.cpython-312.pyc
+³   ³       ³           package_data.cpython-312.pyc
+³   ³       ³           __init__.cpython-312.pyc
+³   ³       ³           
+³   ³       ÃÄÄÄidna-3.11.dist-info
+³   ³       ³   ³   INSTALLER
+³   ³       ³   ³   METADATA
+³   ³       ³   ³   RECORD
+³   ³       ³   ³   REQUESTED
+³   ³       ³   ³   WHEEL
+³   ³       ³   ³   
+³   ³       ³   ÀÄÄÄlicenses
+³   ³       ³           LICENSE.md
+³   ³       ³           
+³   ³       ÃÄÄÄpython_dotenv-1.2.2.dist-info
+³   ³       ³   ³   entry_points.txt
+³   ³       ³   ³   INSTALLER
+³   ³       ³   ³   METADATA
+³   ³       ³   ³   RECORD
+³   ³       ³   ³   REQUESTED
+³   ³       ³   ³   top_level.txt
+³   ³       ³   ³   WHEEL
+³   ³       ³   ³   
+³   ³       ³   ÀÄÄÄlicenses
+³   ³       ³           LICENSE
+³   ³       ³           
+³   ³       ÃÄÄÄrequests
+³   ³       ³   ³   adapters.py
+³   ³       ³   ³   api.py
+³   ³       ³   ³   auth.py
+³   ³       ³   ³   certs.py
+³   ³       ³   ³   compat.py
+³   ³       ³   ³   cookies.py
+³   ³       ³   ³   exceptions.py
+³   ³       ³   ³   help.py
+³   ³       ³   ³   hooks.py
+³   ³       ³   ³   models.py
+³   ³       ³   ³   packages.py
+³   ³       ³   ³   sessions.py
+³   ³       ³   ³   status_codes.py
+³   ³       ³   ³   structures.py
+³   ³       ³   ³   utils.py
+³   ³       ³   ³   _internal_utils.py
+³   ³       ³   ³   __init__.py
+³   ³       ³   ³   __version__.py
+³   ³       ³   ³   
+³   ³       ³   ÀÄÄÄ__pycache__
+³   ³       ³           adapters.cpython-312.pyc
+³   ³       ³           api.cpython-312.pyc
+³   ³       ³           auth.cpython-312.pyc
+³   ³       ³           certs.cpython-312.pyc
+³   ³       ³           compat.cpython-312.pyc
+³   ³       ³           cookies.cpython-312.pyc
+³   ³       ³           exceptions.cpython-312.pyc
+³   ³       ³           hooks.cpython-312.pyc
+³   ³       ³           models.cpython-312.pyc
+³   ³       ³           packages.cpython-312.pyc
+³   ³       ³           sessions.cpython-312.pyc
+³   ³       ³           status_codes.cpython-312.pyc
+³   ³       ³           structures.cpython-312.pyc
+³   ³       ³           utils.cpython-312.pyc
+³   ³       ³           _internal_utils.cpython-312.pyc
+³   ³       ³           __init__.cpython-312.pyc
+³   ³       ³           __version__.cpython-312.pyc
+³   ³       ³           
+³   ³       ÃÄÄÄrequests-2.33.1.dist-info
+³   ³       ³   ³   INSTALLER
+³   ³       ³   ³   METADATA
+³   ³       ³   ³   RECORD
+³   ³       ³   ³   REQUESTED
+³   ³       ³   ³   top_level.txt
+³   ³       ³   ³   WHEEL
+³   ³       ³   ³   
+³   ³       ³   ÀÄÄÄlicenses
+³   ³       ³           LICENSE
+³   ³       ³           NOTICE
+³   ³       ³           
+³   ³       ÃÄÄÄurllib3
+³   ³       ³   ³   connection.py
+³   ³       ³   ³   connectionpool.py
+³   ³       ³   ³   exceptions.py
+³   ³       ³   ³   fields.py
+³   ³       ³   ³   filepost.py
+³   ³       ³   ³   poolmanager.py
+³   ³       ³   ³   py.typed
+³   ³       ³   ³   response.py
+³   ³       ³   ³   _base_connection.py
+³   ³       ³   ³   _collections.py
+³   ³       ³   ³   _request_methods.py
+³   ³       ³   ³   _version.py
+³   ³       ³   ³   __init__.py
+³   ³       ³   ³   
+³   ³       ³   ÃÄÄÄcontrib
+³   ³       ³   ³   ³   pyopenssl.py
+³   ³       ³   ³   ³   socks.py
+³   ³       ³   ³   ³   __init__.py
+³   ³       ³   ³   ³   
+³   ³       ³   ³   ÃÄÄÄemscripten
+³   ³       ³   ³   ³       connection.py
+³   ³       ³   ³   ³       emscripten_fetch_worker.js
+³   ³       ³   ³   ³       fetch.py
+³   ³       ³   ³   ³       request.py
+³   ³       ³   ³   ³       response.py
+³   ³       ³   ³   ³       __init__.py
+³   ³       ³   ³   ³       
+³   ³       ³   ³   ÀÄÄÄ__pycache__
+³   ³       ³   ³           socks.cpython-312.pyc
+³   ³       ³   ³           __init__.cpython-312.pyc
+³   ³       ³   ³           
+³   ³       ³   ÃÄÄÄhttp2
+³   ³       ³   ³   ³   connection.py
+³   ³       ³   ³   ³   probe.py
+³   ³       ³   ³   ³   __init__.py
+³   ³       ³   ³   ³   
+³   ³       ³   ³   ÀÄÄÄ__pycache__
+³   ³       ³   ³           probe.cpython-312.pyc
+³   ³       ³   ³           __init__.cpython-312.pyc
+³   ³       ³   ³           
+³   ³       ³   ÃÄÄÄutil
+³   ³       ³   ³   ³   connection.py
+³   ³       ³   ³   ³   proxy.py
+³   ³       ³   ³   ³   request.py
+³   ³       ³   ³   ³   response.py
+³   ³       ³   ³   ³   retry.py
+³   ³       ³   ³   ³   ssltransport.py
+³   ³       ³   ³   ³   ssl_.py
+³   ³       ³   ³   ³   ssl_match_hostname.py
+³   ³       ³   ³   ³   timeout.py
+³   ³       ³   ³   ³   url.py
+³   ³       ³   ³   ³   util.py
+³   ³       ³   ³   ³   wait.py
+³   ³       ³   ³   ³   __init__.py
+³   ³       ³   ³   ³   
+³   ³       ³   ³   ÀÄÄÄ__pycache__
+³   ³       ³   ³           connection.cpython-312.pyc
+³   ³       ³   ³           proxy.cpython-312.pyc
+³   ³       ³   ³           request.cpython-312.pyc
+³   ³       ³   ³           response.cpython-312.pyc
+³   ³       ³   ³           retry.cpython-312.pyc
+³   ³       ³   ³           ssltransport.cpython-312.pyc
+³   ³       ³   ³           ssl_.cpython-312.pyc
+³   ³       ³   ³           ssl_match_hostname.cpython-312.pyc
+³   ³       ³   ³           timeout.cpython-312.pyc
+³   ³       ³   ³           url.cpython-312.pyc
+³   ³       ³   ³           util.cpython-312.pyc
+³   ³       ³   ³           wait.cpython-312.pyc
+³   ³       ³   ³           __init__.cpython-312.pyc
+³   ³       ³   ³           
+³   ³       ³   ÀÄÄÄ__pycache__
+³   ³       ³           connection.cpython-312.pyc
+³   ³       ³           connectionpool.cpython-312.pyc
+³   ³       ³           exceptions.cpython-312.pyc
+³   ³       ³           fields.cpython-312.pyc
+³   ³       ³           filepost.cpython-312.pyc
+³   ³       ³           poolmanager.cpython-312.pyc
+³   ³       ³           response.cpython-312.pyc
+³   ³       ³           _base_connection.cpython-312.pyc
+³   ³       ³           _collections.cpython-312.pyc
+³   ³       ³           _request_methods.cpython-312.pyc
+³   ³       ³           _version.cpython-312.pyc
+³   ³       ³           __init__.cpython-312.pyc
+³   ³       ³           
+³   ³       ÃÄÄÄurllib3-2.6.3.dist-info
+³   ³       ³   ³   INSTALLER
+³   ³       ³   ³   METADATA
+³   ³       ³   ³   RECORD
+³   ³       ³   ³   REQUESTED
+³   ³       ³   ³   WHEEL
+³   ³       ³   ³   
+³   ³       ³   ÀÄÄÄlicenses
+³   ³       ³           LICENSE.txt
+³   ³       ³           
+³   ³       ÀÄÄÄ__pycache__
+³   ³               _virtualenv.cpython-312.pyc
+³   ³               
+³   ÀÄÄÄScripts
+³           activate
+³           activate.bat
+³           activate.csh
+³           activate.fish
+³           activate.nu
+³           activate.ps1
+³           activate_this.py
+³           deactivate.bat
+³           dotenv.exe
+³           normalizer.exe
+³           pydoc.bat
+³           python.exe
+³           pythonw.exe
+³           
+ÃÄÄÄEvolution_API
+³   ³   conectar_instancia.py
+³   ³   criar_instancia.py
+³   ³   
+³   ÀÄÄÄ__pycache__
+³           conectar_instancia.cpython-312.pyc
+³           
+ÀÄÄÄManager_db
+        automacao_glpi.db
+        contatos_manager.py
+        db_manager.py
+        

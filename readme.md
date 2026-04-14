@@ -14,10 +14,10 @@ Nossa automação atuará como um "middleware" (um intermediário) entre o GLPI 
 
 ## Plano de Desenvolvimento Passo a Passo
 
-- [ ] Fase 1: Prova de Conceito com a API do GLPI. Configurar tokens de acesso, conectar via Python e conseguir listar os chamados abertos/atribuídos.
+- [x] Fase 1: Prova de Conceito com a API do GLPI. Configurar tokens de acesso, conectar via Python e conseguir listar os chamados abertos/atribuídos.
   - [x] Configurar APIs do GLPI (App-Token e User-Token)
   - [x] Contornar o bloqueio de rede implementando o proxy corporativo direto no script Python.
-  - [ ] Validar a extração da lista de chamados atribuídos.
+  - [x] Validar a extração da lista de chamados atribuídos
 
 - [x] Fase 2: Estruturação de Dados e Lógica de Estado.
   - [x] Criar a "memória" das notificações (Banco de Dados SQLite via `db_manager.py`).
