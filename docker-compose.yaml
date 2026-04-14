@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   evolution-api:
-    image: atendai/evolution-api:v2.1.1
+    image: atendai/evolution-api:latest
     container_name: evolution_api
     restart: always
     ports:
@@ -25,7 +25,8 @@ services:
       - DATABASE_PROVIDER=postgresql
       - DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
       - DATABASE_CONNECTION_CLIENT_NAME=evolution_exchange
-      
+    env_file:
+      - .env
     depends_on:
       - redis
       - postgres

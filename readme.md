@@ -1,6 +1,6 @@
 # Arquitetura do Projeto
 
-Nossa automação atuará como um "middleware" (um intermediário) entre o GLPI e o WhatsApp. 
+Nossa automação atuará como um "middleware" (um intermediário) entre o GLPI e o WhatsApp.
 
 ## O fluxo lógico
 
@@ -10,30 +10,29 @@ Nossa automação atuará como um "middleware" (um intermediário) entre o GLPI 
 
 3. Mapeamento: O script cruzará o nome ou ID do técnico atribuído com o seu respectivo número de WhatsApp.
 
-4. Notificação: Disparo da mensagem padronizada no grupo ou no privado do técnico.
+4. Notificação: Disparo da mensagem padronizada no privado do técnico.
 
 ## Plano de Desenvolvimento Passo a Passo
 
 - [ ] Fase 1: Prova de Conceito com a API do GLPI. Configurar tokens de acesso, conectar via Python e conseguir listar os chamados abertos/atribuídos.
-  - [x] Configurar APIs do GLPI (Geral e User)
-    - [ ] Solicitar a supervisão o acesso pelo firewall da rede  
+  - [x] Configurar APIs do GLPI (App-Token e User-Token)
+  - [x] Contornar o bloqueio de rede implementando o proxy corporativo direto no script Python.
+  - [ ] Validar a extração da lista de chamados atribuídos.
+
+- [x] Fase 2: Estruturação de Dados e Lógica de Estado.
+  - [x] Criar a "memória" das notificações (Banco de Dados SQLite via `db_manager.py`).
+  - [x] Mapeamento de técnicos (Criar o arquivo `tecnicos.json` e isolá-lo no `.gitignore`).
+  - [x] Implementar o gerenciador de contatos (`contatos_manager.py`).
+
+- [x] Fase 3: Integração com WhatsApp. Definir e implementar o serviço para envio da mensagem.
+  - [x] Subir a Evolution API v2 via Docker (com PostgreSQL e Redis).
+  - [x] Configurar o túnel de Proxy Corporativo no `.env` do Docker para acesso à internet.
+  - [x] Criar scripts de automação para criação e conexão de instâncias (`criar_instancia.py` e `conectar_instancia.py`).
+  - [x] Escanear QR Code e estabilizar a sessão do WhatsApp.
+
+- [ ] Fase 4: Orquestração e Deploy (Loop Final).
+  - [ ] Unir as Fases 1, 2 e 3 em um único script `main.py`.
+  - [ ] Criar o loop de repetição (ex: rodar a cada 5 minutos).
+  - [ ] Implementar tratamento de exceções (quedas de internet, GLPI fora do ar).
+  - [ ] Colocar para rodar em background no servidor/máquina local.
   
-  - [x] Implementar o monitoramento do GLPI
-
-- [ ] Fase 2: Estruturação de Dados e Lógica de Estado. Criar um arquivo de configuração (JSON) relacionando os técnicos aos seus números e criar um banco de dados simples (SQLite) para registrar os chamados já notificados.
-  - [x] Criar a "mémoria" das notificações
-    - [x] Criar o banco de dados
-
-  - [ ] Mapemaneto de técnicos (números do whastapp)
-    - [ ] Criar um .json com o número dos técnicos
-    - [x] Adicionar o .json no .gitignore
-  
-  - [x] Implementar um gerenciador de contatos
-
-- [ ] Fase 3: Integração com WhatsApp. Definir e implementar a biblioteca/serviço para envio da mensagem.
-  - [x] Subir a Evolution API
-    - [x] Configurar o arquivo *docker-compose.yml*
-
-- [ ] Fase 4: Loop e Deploy. Colocar o script para rodar em background (como um serviço no servidor) de forma contínua e tratar exceções (o que acontece se a internet cair? O script não pode parar de rodar).
-
-
