@@ -12,3 +12,9 @@ wheels/
 # Dependencies
 .env
 tecnicos.json
+*.txt
+*.code-workspace
+workspace.code-workspace
+monitor_logs.txt
+dir_projeto.txt
+qrcode_temp.html
