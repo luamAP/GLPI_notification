@@ -1,7 +1,8 @@
 import json
 import os
 
-ARQUIVO_TECNICOS = "tecnicos.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ARQUIVO_TECNICOS = os.path.join(BASE_DIR, '..', "tecnicos.json")
 
 def carregar_contatos():
     """Lê o arquivo JSON e retorna o dicionário de técnicos."""
@@ -23,22 +24,11 @@ def obter_numero_tecnico(identificador_glpi):
     # O método .get() é seguro: retorna None se a chave não existir
     numero = contatos.get(identificador_glpi)
     
-    if numero:
-        return numero
+    if numero: return numero
     else:
         print(f"Aviso: Técnico '{identificador_glpi}' não encontrado no mapeamento.")
         return None
 
 # Bloco de teste
 if __name__ == "__main__":
-    tecnico_teste = "maria.souza" # Altere para um nome que esteja no seu JSON
-    numero = obter_numero_tecnico(tecnico_teste)
-    
-    if numero:
-        print(f"Sucesso! O número de {tecnico_teste} é {numero}.")
-
-    tecnico_teste = "luan.pinto" # Altere para um nome que esteja no seu JSON
-    numero = obter_numero_tecnico(tecnico_teste)
-    
-    if numero:
-        print(f"Sucesso! O número de {tecnico_teste} é {numero}.")
+    pass

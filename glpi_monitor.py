@@ -5,6 +5,11 @@ from dotenv import load_dotenv
 import base64
 import json
 
+from Manager_db.db_manager import criar_tabelas, verificar_notificacao, registrar_notificacao
+from Manager_db.contatos_manager import obter_numero_tecnico
+
+from Evolution_API.criar_instancia import enviar_mensagem_whatsapp
+
 # Carrega as vars do arquivo .env
 load_dotenv()
 
@@ -34,7 +39,7 @@ def iniciar_sessao_glpi():
         "App-Token": APP_TOKEN
     }
     
-    print("Tentando conectar ao GLPI...")
+    print("Tentando conectar ao GLPI...", end=' ')
     
     try:
         # Endpoint para iniciar a sessão
@@ -45,12 +50,12 @@ def iniciar_sessao_glpi():
         response.raise_for_status() 
         
         session_token = response.json().get("session_token")
-        print(f"Sucesso! Sessão iniciada. Token: {session_token[:10]}...")
+        print(f"Sucesso! Sessão iniciada. Token: {session_token[:10]}")
         return session_token
         
     except requests.exceptions.RequestException as erro:
-        print(f"Erro grave de conexão: {erro}")
-        if response is not None: print(f"Detalhes: {response.text}")
+        print(f"ERRO grave de conexão: {erro}\n")
+        if response is not None: print(f"Detalhes: {response.text}\n")
         return None
 
 def buscar_chamados_recentes(session_token):
@@ -98,7 +103,7 @@ def buscar_chamados_recentes(session_token):
         return dados.get("data", [])
         
     except requests.exceptions.RequestException as erro:
-        print(f"Erro ao buscar chamados: {erro}")
+        print(f"ERRO ao buscar chamados: {erro}\n")
         return []
 
 def processar_chamados_brutos(lista_chamados_brutos):
@@ -136,35 +141,71 @@ def carregar_mapa_tecnicos(caminho_arquivo="tecnicos.json"):
         with open(caminho_arquivo, 'r', encoding='utf-8') as f:
             return json.load(f)
     except FileNotFoundError:
-        print(f"Erro: O arquivo {caminho_arquivo} não foi encontrado.")
+        print(f"ERRO: O arquivo {caminho_arquivo} não foi encontrado.\n")
         return {}
     except json.JSONDecodeError:
-        print("Erro: Falha ao decodificar o arquivo JSON. Verifique a formatação.")
+        print("ERRO: Falha ao decodificar o arquivo JSON. Verifique a formatação.\n")
         return {}
+
+def mensagem_para_tecnico(chamado, tecnico_info):
+    telefone = tecnico_info.get('telefone')
+    nome = tecnico_info.get('nome_completo')
+    id_chamado = chamado['id_chamado']
+
+    print(f'-> [ENVIAR ZAP] Chamado {id_chamado} ("{chamado['titulo']}") para {nome} ({telefone}).')
+
+    # === AQUI ENTRARÁ A EVOLUTION API ===
+    texto_msg = (
+        f"⚠️ *NOVO CHAMADO ATRIBUÍDO!*\n\n"
+        f"🔹 *ID:* {id_chamado}\n"
+        f"🔹 *Título:* {chamado['titulo']}\n\n"
+        f"Link para o chamado:\n"
+        f"https://suporteseminf.manaus.am.gov.br/front/ticket.form.php?id={id_chamado}"
+    )
+
+    sucesso = enviar_mensagem_whatsapp(telefone, texto_msg)
+
+    if sucesso:
+        print(f'-> Mensagem entregue com sucesso para {nome}.\n')
+        registrar_notificacao(id_chamado)
+        return True
+    else: 
+        print(f'-> Falha no envio para {nome}. O chamado NÃO foi registrado no banco local e será tentado na próxima rodada.\n')
+        return 
 
 if __name__ == "__main__":
     sessao = iniciar_sessao_glpi()
     
-    if not sessao: print("Falha na Fase 1.1.")
-    else: 
-        print("Fase 1.1 concluída. Estamos dentro.")
-        
+    if not sessao: print("Falha ao tentar conectar com o GLPI!")
+    else:
         chamados = buscar_chamados_recentes(sessao)
-        print(chamados)
-        
+
         if chamados:
             chamados_padronizados = processar_chamados_brutos(chamados)
             mapa_tecnicos = carregar_mapa_tecnicos()
-            
-            print("\n--- INICIANDO CRUZAMENTO DE DADOS ---")
+
+            print("\n--- INICIANDO CRUZAMENTO DE DADOS ---\n")
+            # Cria tabela de notificação
+            criar_tabelas()
+
             for chamado in chamados_padronizados:
+                id_tec = str(chamado['id_tecnico']) # Garantindo que é string para buscar no JSON
+                id_chamado = chamado['id_chamado']
+
                 # Se o chamado não tem técnico atribuído (None), não há para quem enviar mensagem.
-                if chamado['id_tecnico'] is None:
+                if id_tec is None:
                     print(f"-> [INFO] Chamado {chamado['id_chamado']} ('{chamado['titulo']}') está Novo/Sem técnico. Aguardando triagem.")
                     continue
-                    
-                id_tec = str(chamado['id_tecnico']) # Garantindo que é string para buscar no JSON
-                
+
+                if verificar_notificacao(id_chamado):
+                    print(f'-> [INFO] Chamado {id_chamado} já foi notificado. Ignorando.')
+                    continue
+
+                tecnico_info = obter_numero_tecnico(id_tec)
+
+                if tecnico_info: mensagem_para_tecnico(chamado, tecnico_info)
+
+                else: print(f'-> [ERRO] Técnico ID {id_tec} não encontrado no JSON. Chamado {id_chamado} retido.')
                 # Ignorando chamados fechados (6) e solucionados (5) - ajuste conforme sua regra de negócios
                 if chamado['status'] in [5, 6]:
                     print(f"Chamado {chamado['id_chamado']} ignorado (Status: {chamado['status']} - Encerrado/Solucionado).")
@@ -172,14 +213,6 @@ if __name__ == "__main__":
                 
                 # Buscando o técnico no JSON
                 tecnico_info = mapa_tecnicos.get(id_tec)
-                
-                if tecnico_info:
-                    print(f"-> [ENVIAR ZAP] Chamado {chamado['id_chamado']} ('{chamado['titulo']}') "
-                          f"para {tecnico_info['nome_completo']} no número {tecnico_info['telefone']}.")
-                    # Aqui entrará a função da Fase 3 (Evolution API)
-                else:
-                    print(f"-> [ERRO] Técnico ID {id_tec} não encontrado no JSON. Chamado {chamado['id_chamado']} retido.")
-                    
-        else:
-            print("\nNenhum chamado retornado.")
+                                    
+        else: print("\nNenhum chamado retornado.")
         

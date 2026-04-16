@@ -1,7 +1,8 @@
 import sqlite3
 import os
 
-DB_FILE = "automacao_glpi.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_FILE = os.path.join(BASE_DIR, "automacao_glpi.db")
 
 def conectar():
     """Cria a conexão com o banco de dados SQLite."""
@@ -21,9 +22,9 @@ def criar_tabelas():
     """)
     conexao.commit()
     conexao.close()
-    print("Banco de dados verificado/inicializado com sucesso.")
+    print(">>> Banco de dados verificado/inicializado com sucesso. <<<\n")
 
-def foi_notificado(id_chamado):
+def verificar_notificacao(id_chamado):
     """Verifica se um chamado já está no banco de dados."""
     conexao = conectar()
     cursor = conexao.cursor()
@@ -44,22 +45,12 @@ def registrar_notificacao(id_chamado):
     try:
         cursor.execute("INSERT INTO chamados_notificados (id_chamado) VALUES (?)", (id_chamado,))
         conexao.commit()
-        print(f"Chamado #{id_chamado} registrado no banco com sucesso.")
+        print(f">>> Chamado #{id_chamado} registrado no banco com sucesso. <<<")
     except sqlite3.IntegrityError:
-        print(f"Aviso: Tentativa de registrar o chamado #{id_chamado} em duplicidade.")
+        print(f">>> Aviso: Tentativa de registrar o chamado #{id_chamado} em duplicidade. <<<")
     finally:
         conexao.close()
 
 # Bloco de teste local
 if __name__ == "__main__":
     criar_tabelas()
-    
-    # Simulando a lógica de triagem
-    chamado_teste = 5501
-    
-    if not foi_notificado(chamado_teste):
-        print(f"Enviando WhatsApp para o chamado {chamado_teste}...")
-        # Aqui entraria o código da Evolution API no futuro
-        registrar_notificacao(chamado_teste)
-    else:
-        print(f"Chamado {chamado_teste} já havia sido notificado. Ignorando.")
