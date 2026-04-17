@@ -30,9 +30,9 @@ Nossa automação atuará como um "middleware" (um intermediário) entre o GLPI 
   - [x] Criar scripts de automação para criação e conexão de instâncias (`criar_instancia.py` e `conectar_instancia.py`).
   - [x] Escanear QR Code e estabilizar a sessão do WhatsApp.
 
-- [ ] Fase 4: Orquestração e Deploy (Loop Final).
-  - [ ] Unir as Fases 1, 2 e 3 em um único script `main.py`.
-  - [ ] Criar o loop de repetição (ex: rodar a cada 5 minutos).
-  - [ ] Implementar tratamento de exceções (quedas de internet, GLPI fora do ar).
-  - [ ] Colocar para rodar em background no servidor/máquina local.
+- [x] Fase 4: Orquestração e Deploy (Loop Final).
+  - [x] Unir as Fases 1, 2 e 3 em um único script `main.py`.
+  - [x] Criar o loop de repetição (ex: rodar a cada 5 minutos) feita pelo Agendador de tarefas do Windows.
+  - [x] Implementar tratamento de exceções (quedas de internet, GLPI fora do ar).
+  - [x] Colocar para rodar em background no servidor/máquina local.
   
