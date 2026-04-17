@@ -15,9 +15,6 @@ wheels/
 tecnicos.json
 *.txt
 *.code-workspace
-workspace.code-workspace
-monitor_logs.txt
-dir_projeto.txt
 qrcode_temp.html
 automacao_glpi.db
 glpi_session.txt
