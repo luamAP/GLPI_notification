@@ -78,16 +78,18 @@ def sincronizar_base_notificacoes():
     """Percorre a tabela local"""
     conexao = conectar()
     cursor = conexao.cursor()
+    chamados = []
 
     try:
         # Buscamos apenas IDs únicos para não consultar a API várias vezes para o mesmo chamado
         cursor.execute("SELECT DISTINCT id_chamado FROM chamados_notificados")
         chamados = cursor.fetchall() # Retorna uma lista de tuplas: [(101,), (102,)]
 
-    except Exception as e:
-        print(f"[ERRO CRÍTICO] Falha na sincronização: {e}")
-    finally:
-        conexao.close()
+
+    except Exception as e: 
+        if "no such table" in str(e): print(f'[INFO] A tabela está vazia. Nada para sincronizar no momento.')
+        else: print(f"[ERRO CRÍTICO] Falha na sincronização: {e}")
+    finally: conexao.close()
     return chamados
 
 # Bloco de teste local
