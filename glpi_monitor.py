@@ -34,6 +34,10 @@ def salvar_token_cache(token):
     with open(ARQUIVO_SESSAO, 'w') as f:
         f.write(token)
 
+def remove_file(caminho):
+    if os.path.exists(caminho): os.remove(caminho)
+    else: print("## Arquivo não existe! ##")
+
 def iniciar_sessao_glpi(forcar_novo=False):
     """
     Tenta autenticar na API do GLPI e retornar o token de sessão.
@@ -121,7 +125,10 @@ def buscar_chamados_recentes(session_token):
         return dados.get("data", [])
         
     except requests.exceptions.RequestException as erro:
-        print(f"ERRO ao buscar chamados: {erro}\n")
+        print(f"---({__name__}) ERRO ao buscar chamados: {erro}\n")
+        if erro.response.status_code == 401: 
+            remove_file(ARQUIVO_SESSAO)
+            return False
         return []
 
 def processar_chamados_brutos(lista_chamados_brutos):
@@ -269,5 +276,5 @@ if __name__ == "__main__":
         # # Busca os IDs e já executa a verificação/deleção para cada um em uma linha
         # [verificar_status_chamado(id_ch[0]) for id_ch in sincronizar_base_notificacoes()]
 
-        print(f'Finalizando Varredura...\n')
+        print(f'============= Finalizando Varredura...\n')
         

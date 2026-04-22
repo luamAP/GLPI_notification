@@ -25,6 +25,7 @@ def obter_numero_tecnico(identificador_glpi):
     numero = contatos.get(identificador_glpi)
     
     if numero: return numero
+    elif identificador_glpi is None: return None 
     else:
         print(f"Aviso: Técnico '{identificador_glpi}' não encontrado no mapeamento.")
         return None
