@@ -8,7 +8,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SERVER_URL=http://localhost:8080
+      - SERVER_URL=${EVOLUTION_API_URL}
       - AUTHENTICATION_API_KEY=${EVOLUTION_API}
       
       # ==========================================
@@ -24,7 +24,7 @@ services:
       - DATABASE_ENABLED=true
       - DATABASE_PROVIDER=postgresql
       - DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
-      - DATABASE_CONNECTION_CLIENT_NAME=evolution_exchange
+      - DATABASE_CONNECTION_CLIENT_NAME=evolution
     env_file:
       - .env
     depends_on:

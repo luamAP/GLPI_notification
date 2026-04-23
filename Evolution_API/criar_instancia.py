@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-EVOLUTION_API_URL = "http://localhost:8080" # Nossa API local no Docker
+EVOLUTION_API_URL = os.getenv("EVOLUTION_API_URL") # API local no Docker
 EVOLUTION_API_KEY = os.getenv("EVOLUTION_API")
 NOME_INSTANCIA = "suporte_glpi" # Nome interno da sessão
 
