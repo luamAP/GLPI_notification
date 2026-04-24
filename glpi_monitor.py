@@ -177,6 +177,11 @@ def mensagem_para_tecnico(chamado, tecnico_info, id_tec):
     nome = tecnico_info.get('nome_completo')
     id_chamado = chamado['id_chamado']
 
+    if nome=="ESTEFANI DE LIMA LIMA" or id_tec==825:
+        print(f"-> Mensagem não enviada! {nome} não é um técnico válido")
+        registrar_notificacao(id_chamado, id_tec)
+        return True
+
     print(f'-> [ENVIAR ZAP] Chamado {id_chamado} ("{chamado['titulo']}") para {nome} ({telefone}).')
 
     # === AQUI ENTRARÁ A EVOLUTION API ===
@@ -196,7 +201,7 @@ def mensagem_para_tecnico(chamado, tecnico_info, id_tec):
         return True
     else: 
         print(f'-> Falha no envio para {nome}. O chamado NÃO foi registrado no banco local e será tentado na próxima rodada.\n')
-        return 
+        return False
 
 def verificar_status_chamado(id):
     url = f'{GLPI_API_URL}/Ticket/{id}'
@@ -249,9 +254,11 @@ if __name__ == "__main__":
             criar_tabelas()
 
             for chamado in chamados_padronizados:
+
                 # Avalia ANTES de corverter para string
                 if chamado['id_tecnico'] is None:
-                    print(f'-> [INFO] Chamado {chamado['id_chamado']} está Novo/Sem técnico. Aguardando triagem.')
+                    print(f'-> [INFO] Chamado {chamado['id_chamado']} está Novo/Sem técnico. Aguardando triagem.')    
+                    continue
 
                 id_tec = str(chamado['id_tecnico']) # Garantindo que é string para buscar no JSON
                 id_chamado = chamado['id_chamado']
@@ -264,8 +271,8 @@ if __name__ == "__main__":
 
                 # Se o chamado não tem técnico atribuído (None), não há para quem enviar mensagem.
                 if tecnico_info: mensagem_para_tecnico(chamado, tecnico_info, id_tec)
-
                 else: print(f'-> [ERRO] Técnico ID {id_tec} não encontrado no JSON. Chamado {id_chamado} retido.')
+
 
         else: print("\nNenhum chamado retornado.")
         

@@ -24,8 +24,8 @@ def obter_numero_tecnico(identificador_glpi):
     # O método .get() é seguro: retorna None se a chave não existir
     numero = contatos.get(identificador_glpi)
     
-    if numero: return numero
-    elif identificador_glpi is None: return None 
+    if identificador_glpi is None: return None 
+    elif numero: return numero
     else:
         print(f"Aviso: Técnico '{identificador_glpi}' não encontrado no mapeamento.")
         return None
