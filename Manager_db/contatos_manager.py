@@ -16,6 +16,9 @@ def carregar_contatos():
     except json.JSONDecodeError:
         print(f"Erro: O arquivo {ARQUIVO_TECNICOS} possui erros de formatação (JSON inválido).")
         return {}
+    except FileNotFoundError:
+        print(f'ERRO: O arquivo {ARQUIVO_TECNICOS} não foi encontrado.\n')
+        return {}
 
 def obter_numero_tecnico(identificador_glpi):
     """Busca o número de WhatsApp de um técnico específico."""

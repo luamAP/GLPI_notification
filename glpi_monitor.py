@@ -5,9 +5,8 @@ from dotenv import load_dotenv
 import base64
 import json
 
-from Manager_db.db_manager import criar_tabelas, verificar_notificacao, registrar_notificacao, deletar_chamado, sincronizar_base_notificacoes
+from Manager_db.db_manager import criar_tabelas, verificar_notificacao, registrar_notificacao, deletar_chamado, sincronizar_base_notificacoes, DB_FILE
 from Manager_db.contatos_manager import obter_numero_tecnico
-
 from Evolution_API.criar_instancia import enviar_mensagem_whatsapp
 
 # Carrega as vars do arquivo .env
@@ -24,19 +23,42 @@ LOGIN_GLPI = os.getenv("LOGIN_GLPI")
 ARQUIVO_SESSAO = 'glpi_session.txt'
 
 def obter_token_cache():
-    try:
-        with open (ARQUIVO_SESSAO, 'r') as f:
-            return f.read().strip()
-    except FileNotFoundError:
-        return None
+    """ Lê o arquivo 'glpi_session.txt' para obter o token """
+    try: 
+        with open (ARQUIVO_SESSAO, 'r') as f: return f.read().strip()
+    except FileNotFoundError: return None
     
 def salvar_token_cache(token):
+    """ Cria o arquivo 'glpi_session.txt' com o token da API """
     with open(ARQUIVO_SESSAO, 'w') as f:
         f.write(token)
 
 def remove_file(caminho):
+    """ Remove o arquivo especificado """
     if os.path.exists(caminho): os.remove(caminho)
     else: print("## Arquivo não existe! ##")
+
+def check_api():
+    """ Checa a "Saúde da API" do GLPI """
+    login_str = f"{LOGIN_GLPI}:{SENHA_GLPI}"
+    b64_cred = base64.b64encode(login_str.encode('utf-8')).decode('utf-8')
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Session-Token': obter_token_cache(),
+        'App-Token': APP_TOKEN
+    }
+
+    try:
+        url = f'{GLPI_API_URL}/getFullSession'
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+
+    except requests.exceptions.HTTPError as e:
+            print(f'\n{e}\n')
+            if e.response.status_code in (401, 403):
+                print('Sessão em cache expirou ou é inválida, Renovando...')
+                sessao = iniciar_sessao_glpi(forcar_novo=True)
 
 def iniciar_sessao_glpi(forcar_novo=False):
     """
@@ -92,7 +114,7 @@ def buscar_chamados_recentes(session_token):
     # Se estiver usando App-Token, ele deve ir em todas as requisições subsequentes
     if APP_TOKEN: headers["App-Token"] = APP_TOKEN
         
-    print("\nBuscando chamados recentes...")
+    print("\nBuscando chamados recentes...\n")
     
     try:
         url_base_limpa = GLPI_API_URL.rstrip('/')
@@ -125,10 +147,8 @@ def buscar_chamados_recentes(session_token):
         return dados.get("data", [])
         
     except requests.exceptions.RequestException as erro:
-        print(f"---({__name__}) ERRO ao buscar chamados: {erro}\n")
-        if erro.response.status_code == 401: 
-            remove_file(ARQUIVO_SESSAO)
-            return False
+        print(f"--- ERRO ao buscar chamados: {erro}\n")
+        if erro.response.status_code == 401 and erro.response is not None: raise
         return []
 
 def processar_chamados_brutos(lista_chamados_brutos):
@@ -158,26 +178,13 @@ def processar_chamados_brutos(lista_chamados_brutos):
         
     return chamados_limpos
 
-def carregar_mapa_tecnicos(caminho_arquivo="tecnicos.json"):
-    """
-    Carrega o arquivo JSON com o de-para de IDs e telefones dos técnicos.
-    """
-    try:
-        with open(caminho_arquivo, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        print(f"ERRO: O arquivo {caminho_arquivo} não foi encontrado.\n")
-        return {}
-    except json.JSONDecodeError:
-        print("ERRO: Falha ao decodificar o arquivo JSON. Verifique a formatação.\n")
-        return {}
-
 def mensagem_para_tecnico(chamado, tecnico_info, id_tec):
+    """ Organiza a mensagem que será enviada para o técnico """
     telefone = tecnico_info.get('telefone')
     nome = tecnico_info.get('nome_completo')
     id_chamado = chamado['id_chamado']
 
-    if nome=="ESTEFANI DE LIMA LIMA" or id_tec==825:
+    if id_tec in [825]:
         print(f"-> Mensagem não enviada! {nome} não é um técnico válido")
         registrar_notificacao(id_chamado, id_tec)
         return True
@@ -204,6 +211,7 @@ def mensagem_para_tecnico(chamado, tecnico_info, id_tec):
         return False
 
 def verificar_status_chamado(id):
+    """ Verifica se um chaamdo foi solucionado ou excluído """
     url = f'{GLPI_API_URL}/Ticket/{id}'
 
     headers = {
@@ -233,6 +241,7 @@ def verificar_status_chamado(id):
 
 
 if __name__ == "__main__":
+    check_api()
     sessao = iniciar_sessao_glpi()
     
     if not sessao: print("Falha ao tentar conectar com o GLPI!")
@@ -247,11 +256,9 @@ if __name__ == "__main__":
 
         if chamados:
             chamados_padronizados = processar_chamados_brutos(chamados)
-            mapa_tecnicos = carregar_mapa_tecnicos()
 
-            print("\n--- INICIANDO CRUZAMENTO DE DADOS ---\n")
             # Cria tabela de notificação
-            criar_tabelas()
+            if not os.path.exists(DB_FILE): criar_tabelas()
 
             for chamado in chamados_padronizados:
 
@@ -263,16 +270,13 @@ if __name__ == "__main__":
                 id_tec = str(chamado['id_tecnico']) # Garantindo que é string para buscar no JSON
                 id_chamado = chamado['id_chamado']
 
-                if verificar_notificacao(id_chamado, id_tec):
-                    print(f'-> [INFO] Chamado {id_chamado} já foi notificado para o técnico {id_tec}. Ignorando.')
-                    continue
+                if verificar_notificacao(id_chamado, id_tec): continue
 
                 tecnico_info = obter_numero_tecnico(id_tec)
 
                 # Se o chamado não tem técnico atribuído (None), não há para quem enviar mensagem.
                 if tecnico_info: mensagem_para_tecnico(chamado, tecnico_info, id_tec)
                 else: print(f'-> [ERRO] Técnico ID {id_tec} não encontrado no JSON. Chamado {id_chamado} retido.')
-
 
         else: print("\nNenhum chamado retornado.")
         
@@ -282,6 +286,4 @@ if __name__ == "__main__":
         # COM LIST COMPREHENSION
         # # Busca os IDs e já executa a verificação/deleção para cada um em uma linha
         # [verificar_status_chamado(id_ch[0]) for id_ch in sincronizar_base_notificacoes()]
-
-        print(f'============= Finalizando Varredura...\n')
         

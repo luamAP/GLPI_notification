@@ -24,7 +24,7 @@ def criar_tabelas():
     """)
     conexao.commit()
     conexao.close()
-    print(">>> Banco de dados verificado/inicializado com sucesso. <<<\n")
+    print(">>> Banco de dados inicializado com sucesso. <<<\n")
 
 def verificar_notificacao(id_chamado, id_tecnico):
     """Verifica se um chamado já está no banco de dados."""
