@@ -31,7 +31,7 @@ def obter_qr_code():
                 base64_img = dados.get("base64")
                 
                 if base64_img:
-                    print("\nSUCESSO! Gerando página HTML...")
+                    print("SUCESSO! Gerando página HTML...")
                     
                     # 1. Monta uma página HTML simples com a imagem
                     html_content = f"""
@@ -78,7 +78,7 @@ def obter_qr_code():
                     with socketserver.TCPServer(('', PORTA), Handler) as httpd:
                         try: httpd.serve_forever()
                         except KeyboardInterrupt:
-                            print('\nServidor web encerrado. Instância pronta para uso!')
+                            print('Servidor web encerrado. Instância pronta para uso!')
                     
                     return
                     
@@ -88,7 +88,7 @@ def obter_qr_code():
         print(f"[{tentativa}/15] Motor iniciando... Aguardando QR Code...")
         time.sleep(3) 
         
-    print("\nFalha: O tempo limite de inicialização foi atingido.")
+    print("Falha: O tempo limite de inicialização foi atingido.")
 
 def criar_e_conectar_instancia():
     url = f"{EVOLUTION_API_URL}/instance/create"

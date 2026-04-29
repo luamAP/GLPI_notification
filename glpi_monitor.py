@@ -55,7 +55,7 @@ def check_api():
         response.raise_for_status()
 
     except requests.exceptions.HTTPError as e:
-            print(f'\n{e}\n')
+            print(f'{e}')
             if e.response.status_code in (401, 403):
                 print('Sessão em cache expirou ou é inválida, Renovando...')
                 sessao = iniciar_sessao_glpi(forcar_novo=True)
@@ -66,9 +66,7 @@ def iniciar_sessao_glpi(forcar_novo=False):
     """
     if not forcar_novo:
         token_cache = obter_token_cache()
-        if token_cache:
-            print(f'Usando token de sessão em cache: {token_cache[:10]}... ', end=" ")
-            return token_cache
+        if token_cache: return token_cache
 
     # Substitua com sua senha real de acesso ao GLPI
     login_str = f"{LOGIN_GLPI}:{SENHA_GLPI}"
@@ -99,7 +97,7 @@ def iniciar_sessao_glpi(forcar_novo=False):
         return session_token
         
     except requests.exceptions.RequestException as erro:
-        print(f"ERRO grave de conexão: {erro}\n")
+        print(f"ERRO grave de conexão: {erro}")
         return None
 
 def buscar_chamados_recentes(session_token):
@@ -113,8 +111,6 @@ def buscar_chamados_recentes(session_token):
     
     # Se estiver usando App-Token, ele deve ir em todas as requisições subsequentes
     if APP_TOKEN: headers["App-Token"] = APP_TOKEN
-        
-    print("\nBuscando chamados recentes...\n")
     
     try:
         url_base_limpa = GLPI_API_URL.rstrip('/')
@@ -127,6 +123,7 @@ def buscar_chamados_recentes(session_token):
             "range": "0-10", # Aumentei para 10 para varrer mais possibilidades
             "sort": "1",
             "order": "DESC",
+            
             # Condição 1: Status (campo 12) igual a 1 (Novo)
             "criteria[0][field]": "12",
             "criteria[0][searchtype]": "equals",
@@ -147,7 +144,7 @@ def buscar_chamados_recentes(session_token):
         return dados.get("data", [])
         
     except requests.exceptions.RequestException as erro:
-        print(f"--- ERRO ao buscar chamados: {erro}\n")
+        print(f"--- ERRO ao buscar chamados: {erro}")
         if erro.response.status_code == 401 and erro.response is not None: raise
         return []
 
@@ -161,10 +158,12 @@ def processar_chamados_brutos(lista_chamados_brutos):
     for chamado in lista_chamados_brutos:
         # Uso do .get() é uma prática defensiva essencial em integrações
         # Se a chave não existir, retorna None em vez de quebrar o script
-        id_chamado = chamado.get('2')
-        titulo = chamado.get('1')
-        id_tecnico = chamado.get('5')
-        status = chamado.get('12')
+        id_chamado   = chamado.get('2')   # ID do Chamado
+        titulo       = chamado.get('1')   # Título (Assunto)
+        id_tecnico   = chamado.get('5')   # Técnico atribuído
+        status       = chamado.get('12')  # Status (ID ou texto se expand_dropdowns=True)
+        requerente  = buscar_nome_usuario(chamado.get('4'))   # Nome do Requerente (Usuário)
+        setor      = chamado.get('83').split('> ')[-1]    # Localização (Setor/Departamento)
         
         # Ignora registros que por algum motivo vieram sem ID
         if not id_chamado: continue
@@ -173,10 +172,39 @@ def processar_chamados_brutos(lista_chamados_brutos):
             "id_chamado": id_chamado,
             "titulo": titulo,
             "id_tecnico": id_tecnico,
-            "status": status
+            "status": status,
+            "requerente": requerente,
+            "setor": setor
         })
         
     return chamados_limpos
+
+def buscar_nome_usuario(user_id):
+    """
+    Busca os detalhes de um usuário específico pelo ID.
+    """
+
+    headers = {
+        "Content-Type": "application/json",
+        "Session-Token": obter_token_cache()
+    }
+    if APP_TOKEN: headers["App-Token"] = APP_TOKEN
+
+    try:
+        url_base_limpa = GLPI_API_URL.rstrip('/')
+        url = f"{url_base_limpa}/User/{user_id}" # Endpoint: /User/:id
+        
+        response = requests.get(url, headers=headers)
+        
+        if response.status_code == 200:
+            dados_usuario = response.json()
+            # O GLPI retorna 'firstname' e 'realname' (sobrenome)
+            nome = dados_usuario.get('firstname', '')
+            sobrenome = dados_usuario.get('realname', '')
+            return f"{nome} {sobrenome}".strip() or dados_usuario.get('name') # 'name' é o login
+        
+        return f"Usuário ID {user_id}"
+    except Exception: return "ERRO ao buscar nome"
 
 def mensagem_para_tecnico(chamado, tecnico_info, id_tec):
     """ Organiza a mensagem que será enviada para o técnico """
@@ -193,21 +221,23 @@ def mensagem_para_tecnico(chamado, tecnico_info, id_tec):
 
     # === AQUI ENTRARÁ A EVOLUTION API ===
     texto_msg = (
-        f"⚠️ *NOVO CHAMADO ATRIBUÍDO!*\n\n"
-        f"🔹 *ID:* {id_chamado}\n"
-        f"🔹 *Título:* {chamado['titulo']}\n\n"
+        f"🆕 *NOVO CHAMADO ATRIBUÍDO PARA {nome}!*\n\n"
+        f"✍ Requerente: {chamado['requerente']}\n"
+        f"🗺 Localização/Setor: {chamado['setor']}\n\n"
+        f"🆔 *ID:* {id_chamado}\n"
+        f"▶ *Título:* {chamado['titulo']}\n\n"
         f"Link para o chamado:\n"
-        f"https://suporteseminf.manaus.am.gov.br/front/ticket.form.php?id={id_chamado}"
+        f"suporteseminf.manaus.am.gov.br/front/ticket.form.php?id={id_chamado}"
     )
 
     sucesso = enviar_mensagem_whatsapp(telefone, texto_msg)
 
     if sucesso:
-        print(f'-> Mensagem entregue com sucesso para {nome}.\n')
+        print(f'-> Mensagem entregue com sucesso para {nome}.')
         registrar_notificacao(id_chamado, id_tec)
         return True
     else: 
-        print(f'-> Falha no envio para {nome}. O chamado NÃO foi registrado no banco local e será tentado na próxima rodada.\n')
+        print(f'-> Falha no envio para {nome}. O chamado NÃO foi registrado no banco local e será tentado na próxima rodada.')
         return False
 
 def verificar_status_chamado(id):
@@ -255,6 +285,7 @@ if __name__ == "__main__":
             else: raise e
 
         if chamados:
+            # print(chamados)
             chamados_padronizados = processar_chamados_brutos(chamados)
 
             # Cria tabela de notificação
@@ -264,7 +295,8 @@ if __name__ == "__main__":
 
                 # Avalia ANTES de corverter para string
                 if chamado['id_tecnico'] is None:
-                    print(f'-> [INFO] Chamado {chamado['id_chamado']} está Novo/Sem técnico. Aguardando triagem.')    
+                    # print(f'-> [INFO] Chamado {chamado['id_chamado']} está Novo/Sem técnico. Aguardando triagem.')    
+                    print(chamado)
                     continue
 
                 id_tec = str(chamado['id_tecnico']) # Garantindo que é string para buscar no JSON
@@ -278,7 +310,7 @@ if __name__ == "__main__":
                 if tecnico_info: mensagem_para_tecnico(chamado, tecnico_info, id_tec)
                 else: print(f'-> [ERRO] Técnico ID {id_tec} não encontrado no JSON. Chamado {id_chamado} retido.')
 
-        else: print("\nNenhum chamado retornado.")
+        else: print("Nenhum chamado retornado.")
         
         chamados = sincronizar_base_notificacoes()
         for (id_chamado,) in chamados: verificar_status_chamado(id_chamado)

@@ -17,7 +17,7 @@ def carregar_contatos():
         print(f"Erro: O arquivo {ARQUIVO_TECNICOS} possui erros de formatação (JSON inválido).")
         return {}
     except FileNotFoundError:
-        print(f'ERRO: O arquivo {ARQUIVO_TECNICOS} não foi encontrado.\n')
+        print(f'ERRO: O arquivo {ARQUIVO_TECNICOS} não foi encontrado.')
         return {}
 
 def obter_numero_tecnico(identificador_glpi):
