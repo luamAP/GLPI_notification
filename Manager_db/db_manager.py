@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import logging
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(BASE_DIR, "automacao_glpi.db")
@@ -24,7 +25,6 @@ def criar_tabelas():
     """)
     conexao.commit()
     conexao.close()
-    print(">>> Banco de dados inicializado com sucesso. <<<")
 
 def verificar_notificacao(id_chamado, id_tecnico):
     """Verifica se um chamado já está no banco de dados."""
@@ -47,9 +47,8 @@ def registrar_notificacao(id_chamado, id_tecnico):
     try:
         cursor.execute("INSERT INTO chamados_notificados (id_chamado, id_tecnico) VALUES (?, ?)", (id_chamado, id_tecnico))
         conexao.commit()
-        print(f">>> Chamado #{id_chamado} registrado para o técnico {id_tecnico} no banco com sucesso. <<<")
     except sqlite3.IntegrityError:
-        print(f">>> Aviso: O técnico {id_tecnico} já foi notificado sobre o chamado #{id_chamado}. <<<")
+        logging.error(f">>> Aviso: O técnico {id_tecnico} já foi notificado sobre o chamado #{id_chamado}. <<<")
     finally:
         conexao.close()
 
@@ -66,11 +65,10 @@ def deletar_chamado(id):
         cursor.execute(sql, (id,))
         
         conexao.commit()
-        print(f">>> Total de {cursor.rowcount} técnicos removidos para o chamado {id}. <<<")
-
+        
     except Exception as e:
         conexao.rollback()
-        print(f'>>> [ERRO] Falha ao deletar o chamado {id}: {e} <<<')
+        logging.error(f'>>> Falha ao deletar o chamado {id}: {e} <<<')
 
     finally: conexao.close()
 
@@ -87,8 +85,8 @@ def sincronizar_base_notificacoes():
 
 
     except Exception as e: 
-        if "no such table" in str(e): print(f'[INFO] A tabela está vazia. Nada para sincronizar no momento.')
-        else: print(f"[ERRO CRÍTICO] Falha na sincronização: {e}")
+        if "no such table" in str(e): logging.info(f'A tabela está vazia. Nada para sincronizar no momento.')
+        else: logging.critical(f"Falha na sincronização: {e}")
     finally: conexao.close()
     return chamados
 

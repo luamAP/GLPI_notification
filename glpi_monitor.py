@@ -1,12 +1,11 @@
 import requests
 import os
 from dotenv import load_dotenv
+import logging
 
 import base64
-import json
 
-from Manager_db.db_manager import criar_tabelas, verificar_notificacao, registrar_notificacao, deletar_chamado, sincronizar_base_notificacoes, DB_FILE
-from Manager_db.contatos_manager import obter_numero_tecnico
+from Manager_db.db_manager import registrar_notificacao, deletar_chamado
 from Evolution_API.criar_instancia import enviar_mensagem_whatsapp
 
 # Carrega as vars do arquivo .env
@@ -36,7 +35,7 @@ def salvar_token_cache(token):
 def remove_file(caminho):
     """ Remove o arquivo especificado """
     if os.path.exists(caminho): os.remove(caminho)
-    else: print("## Arquivo não existe! ##")
+    else: logging.error("## Arquivo não existe! ##")
 
 def check_api():
     """ Checa a "Saúde da API" do GLPI """
@@ -55,18 +54,14 @@ def check_api():
         response.raise_for_status()
 
     except requests.exceptions.HTTPError as e:
-            print(f'{e}')
             if e.response.status_code in (401, 403):
-                print('Sessão em cache expirou ou é inválida, Renovando...')
-                sessao = iniciar_sessao_glpi(forcar_novo=True)
+                logging.error('Sessão em cache expirou ou é inválida, Renovando...')
+                iniciar_sessao_glpi()
 
-def iniciar_sessao_glpi(forcar_novo=False):
+def iniciar_sessao_glpi():
     """
     Tenta autenticar na API do GLPI e retornar o token de sessão.
     """
-    if not forcar_novo:
-        token_cache = obter_token_cache()
-        if token_cache: return token_cache
 
     # Substitua com sua senha real de acesso ao GLPI
     login_str = f"{LOGIN_GLPI}:{SENHA_GLPI}"
@@ -81,8 +76,6 @@ def iniciar_sessao_glpi(forcar_novo=False):
         "App-Token": APP_TOKEN
     }
     
-    print("Gerando NOVA sessão no GLPI...", end=' ')
-    
     try:
         # Endpoint para iniciar a sessão
         url = f"{GLPI_API_URL}/initSession"
@@ -92,12 +85,11 @@ def iniciar_sessao_glpi(forcar_novo=False):
         response.raise_for_status() 
         
         session_token = response.json().get("session_token")
-        print(f"Sucesso! Sessão iniciada. Novo Token: {session_token[:10]}")
+        logging.info(f"Sucesso! Sessão iniciada. Novo Token: {session_token[:10]}")
         salvar_token_cache(session_token)
-        return session_token
         
     except requests.exceptions.RequestException as erro:
-        print(f"ERRO grave de conexão: {erro}")
+        logging.error(f"ERRO grave de conexão: {erro}")
         return None
 
 def buscar_chamados_recentes(session_token):
@@ -144,9 +136,8 @@ def buscar_chamados_recentes(session_token):
         return dados.get("data", [])
         
     except requests.exceptions.RequestException as erro:
-        print(f"--- ERRO ao buscar chamados: {erro}")
-        if erro.response.status_code == 401 and erro.response is not None: raise
-        return []
+        logging.error(f"--- ERRO ao buscar chamados: {erro}")
+        raise
 
 def processar_chamados_brutos(lista_chamados_brutos):
     """
@@ -213,17 +204,16 @@ def mensagem_para_tecnico(chamado, tecnico_info, id_tec):
     id_chamado = chamado['id_chamado']
 
     if id_tec in [825]:
-        print(f"-> Mensagem não enviada! {nome} não é um técnico válido")
         registrar_notificacao(id_chamado, id_tec)
         return True
 
-    print(f'-> [ENVIAR ZAP] Chamado {id_chamado} ("{chamado['titulo']}") para {nome} ({telefone}).')
+    enviar = f'ENVIAR Chamado {id_chamado} para {nome} ({telefone}). >>>'
 
     # === AQUI ENTRARÁ A EVOLUTION API ===
     texto_msg = (
-        f"🆕 *NOVO CHAMADO ATRIBUÍDO PARA {nome}!*\n\n"
+        f"🆕 *Novo chamado atribuído {nome}!*\n\n"
         f"✍ Requerente: {chamado['requerente']}\n"
-        f"🗺 Localização/Setor: {chamado['setor']}\n\n"
+        f"📌 Localização/Setor: {chamado['setor']}\n\n"
         f"🆔 *ID:* {id_chamado}\n"
         f"▶ *Título:* {chamado['titulo']}\n\n"
         f"Link para o chamado:\n"
@@ -233,11 +223,11 @@ def mensagem_para_tecnico(chamado, tecnico_info, id_tec):
     sucesso = enviar_mensagem_whatsapp(telefone, texto_msg)
 
     if sucesso:
-        print(f'-> Mensagem entregue com sucesso para {nome}.')
+        logging.info(f'{enviar} Mensagem entregue.')
         registrar_notificacao(id_chamado, id_tec)
         return True
     else: 
-        print(f'-> Falha no envio para {nome}. O chamado NÃO foi registrado no banco local e será tentado na próxima rodada.')
+        logging.error(f'{enviar} Falha no envio.')
         return False
 
 def verificar_status_chamado(id):
@@ -257,65 +247,15 @@ def verificar_status_chamado(id):
             status = data.get('status')
 
             if data.get('is_deleted') == 1 or status in [5, 6]:
-                print(f'- - - Chamado {id} finalizado ou excluído no GLPI! - - -')
+                logging.info(f'- - - Chamado {id} finalizado ou excluído no GLPI! - - -')
                 deletar_chamado(id)
                 return status
             
         elif response.status_code == 404:
             deletar_chamado(id)
-            print(f' - - - Chamado {id} não encontrado (404) - - - ')
+            logging.info(f' - - - Chamado {id} não encontrado (404) - - - ')
             return 0
         
-    except Exception as e: print(f'-> ERRO na consulta do chamado {id}: {e}')
+    except Exception as e: logging.error(f'-> ERRO na consulta do chamado {id}: {e}')
     return 1
 
-
-if __name__ == "__main__":
-    check_api()
-    sessao = iniciar_sessao_glpi()
-    
-    if not sessao: print("Falha ao tentar conectar com o GLPI!")
-    else:
-        try: chamados = buscar_chamados_recentes(sessao)
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code in (401, 403):
-                print('Sessão em cache expirou ou é inválida, Renovando...')
-                sessao = iniciar_sessao_glpi(forcar_novo=True)
-                chamados = buscar_chamados_recentes(sessao)
-            else: raise e
-
-        if chamados:
-            # print(chamados)
-            chamados_padronizados = processar_chamados_brutos(chamados)
-
-            # Cria tabela de notificação
-            if not os.path.exists(DB_FILE): criar_tabelas()
-
-            for chamado in chamados_padronizados:
-
-                # Avalia ANTES de corverter para string
-                if chamado['id_tecnico'] is None:
-                    # print(f'-> [INFO] Chamado {chamado['id_chamado']} está Novo/Sem técnico. Aguardando triagem.')    
-                    print(chamado)
-                    continue
-
-                id_tec = str(chamado['id_tecnico']) # Garantindo que é string para buscar no JSON
-                id_chamado = chamado['id_chamado']
-
-                if verificar_notificacao(id_chamado, id_tec): continue
-
-                tecnico_info = obter_numero_tecnico(id_tec)
-
-                # Se o chamado não tem técnico atribuído (None), não há para quem enviar mensagem.
-                if tecnico_info: mensagem_para_tecnico(chamado, tecnico_info, id_tec)
-                else: print(f'-> [ERRO] Técnico ID {id_tec} não encontrado no JSON. Chamado {id_chamado} retido.')
-
-        else: print("Nenhum chamado retornado.")
-        
-        chamados = sincronizar_base_notificacoes()
-        for (id_chamado,) in chamados: verificar_status_chamado(id_chamado)
-
-        # COM LIST COMPREHENSION
-        # # Busca os IDs e já executa a verificação/deleção para cada um em uma linha
-        # [verificar_status_chamado(id_ch[0]) for id_ch in sincronizar_base_notificacoes()]
-        

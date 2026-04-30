@@ -5,6 +5,7 @@ import socket
 import socketserver
 import http.server as server
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
 
@@ -20,7 +21,7 @@ def obter_qr_code():
         "apikey": EVOLUTION_API_KEY
     }
     
-    print("Buscando o QR Code no servidor...")
+    logging.info("Buscando o QR Code no servidor...")
     
     for tentativa in range(1, 16): 
         try:
@@ -30,9 +31,7 @@ def obter_qr_code():
                 dados = response.json()
                 base64_img = dados.get("base64")
                 
-                if base64_img:
-                    print("SUCESSO! Gerando página HTML...")
-                    
+                if base64_img:                  
                     # 1. Monta uma página HTML simples com a imagem
                     html_content = f"""
                     <html>
@@ -60,7 +59,7 @@ def obter_qr_code():
                     finally: s.close()
 
                     PORTA = 8000
-                    print(f'''
+                    logging.info(f'''
 = = = = = = = = = = = = = = = =  = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
                     📡 SERVIDOR WEB INICIADO NA REDE INTERNA!
                     ➡️ Peça para o dono do celular acessar este link no navegador dele:
@@ -78,17 +77,17 @@ def obter_qr_code():
                     with socketserver.TCPServer(('', PORTA), Handler) as httpd:
                         try: httpd.serve_forever()
                         except KeyboardInterrupt:
-                            print('Servidor web encerrado. Instância pronta para uso!')
+                            logging.info('Servidor web encerrado. Instância pronta para uso!')
                     
                     return
                     
         except requests.exceptions.RequestException:
             pass # Ignora erros de conexão durante o polling
             
-        print(f"[{tentativa}/15] Motor iniciando... Aguardando QR Code...")
+        logging.info(f"[{tentativa}/15] Motor iniciando... Aguardando QR Code...")
         time.sleep(3) 
         
-    print("Falha: O tempo limite de inicialização foi atingido.")
+    logging.info("Falha: O tempo limite de inicialização foi atingido.")
 
 def criar_e_conectar_instancia():
     url = f"{EVOLUTION_API_URL}/instance/create"
@@ -105,21 +104,19 @@ def criar_e_conectar_instancia():
         "integration": "WHATSAPP-BAILEYS"
     }
     
-    print("Solicitando criação da instância...")
+    logging.info("Solicitando criação da instância...")
     
     try:
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()
         
-        if response.status_code in [200, 201]:
-            print("Sucesso! Instância criada no backend.")
-        else:
-            print(f"Aviso: A API retornou status {response.status_code}. A instância pode já estar criada.")
+        if response.status_code in [200, 201]: logging.info("Sucesso! Instância criada no backend.")
+        else: logging.error(f"Aviso: A API retornou status {response.status_code}. A instância pode já estar criada.")
 
         obter_qr_code()
 
     except requests.exceptions.RequestException as e:
-        print(f"[ERRO] grave de conexão: {e}")
+        logging.error(f"ERRO grave de conexão: {e}")
 
 def enviar_mensagem_whatsapp(numero, mensagem):
     """
@@ -145,7 +142,7 @@ def enviar_mensagem_whatsapp(numero, mensagem):
         response.raise_for_status() # Verifica se a API retornou erro (400, 500, etc)
         return True
     except requests.exceptions.RequestException as e:
-        print(f'Erro na Evolution API ao enviar mensagem: {e}')
+        logging.error(f'Erro na Evolution API ao enviar mensagem: {e}')
         return False
 
 if __name__ == "__main__":

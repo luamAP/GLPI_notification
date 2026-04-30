@@ -26,8 +26,14 @@
    3. [x] Setor do requerente
    4. [x] Eliminar o https do link
 
-9. Ajustar o log para sair apenas informações necessárias
-   1. [ ] Eliminar o texto iniciando e finalizando varredura
-   2. [ ] Colocar data e hora para cada informação do log (ex.: [28/04/2026  9:50:06,70] [INFO] -> [ENVIAR ZAP] Chamado 10038 ("REATIVA��O USU�RIO") para ADRIANO LEITE (+55 92 9532-8630).)
-   3. [ ] Ajustar a formatação de texto, consertar o erro REATIVA��O USU�RIO
-   4. [ ] Eliminar logs de confirmação, como `Usando token de sess�o em cache: 1d5t3jp473...  Buscando chamados recentes...`, `-> Mensagem entregue com sucesso para ADRIANO LEITE.`, `>>> Chamado #10038 registrado para o t�cnico 12 no banco com sucesso. <<<`
+9. [x] Ajustar o log para sair apenas informações necessárias
+   1. [x] Eliminar o texto iniciando e finalizando varredura
+   2. [x] Colocar data e hora para cada informação do log (ex.: [28/04/2026  9:50:06,70] [INFO] -> [ENVIAR ZAP] Chamado 10038 ("REATIVA��O USU�RIO") para ADRIANO LEITE (+55 92 9532-8630).)
+   3. [x] Ajustar a formatação de texto, consertar o erro REATIVA��O USU�RIO
+   4. [x] Eliminar logs de confirmação, como `Usando token de sess�o em cache: 1d5t3jp473...  Buscando chamados recentes...`, `-> Mensagem entregue com sucesso para ADRIANO LEITE.`, `>>> Chamado #10038 registrado para o t�cnico 12 no banco com sucesso. <<<`
+
+10. [ ] Ajustar execções de chamados
+    1. [ ] Técnicos duplicados, enviar para os dois
+    2. [ ] Técnico trocado, atualizar o banco de dados e enviar para o novo técnico
+
+11. [ ] Criar um executável para rodar em um servidor
