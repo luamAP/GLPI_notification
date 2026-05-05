@@ -31,5 +31,5 @@ def obter_numero_tecnico(identificador_glpi):
     if identificador_glpi is None: return None 
     elif numero: return numero
     else:
-        logging.info(f"Aviso: Técnico '{identificador_glpi}' não encontrado no mapeamento.")
+        logging.info(f"Aviso: Técnico '{identificador_glpi}' não encontrado no mapeamento JSON.")
         return None

@@ -5,9 +5,9 @@ import logging
 
 import base64
 
-from Manager_db.db_manager import registrar_notificacao, deletar_chamado
+from Manager_db.db_manager import registrar_notificacao, deletar_chamado, verificar_notificacao
 from Evolution_API.criar_instancia import enviar_mensagem_whatsapp
-
+from Manager_db.contatos_manager import obter_numero_tecnico
 # Carrega as vars do arquivo .env
 load_dotenv()
 
@@ -203,10 +203,6 @@ def mensagem_para_tecnico(chamado, tecnico_info, id_tec):
     nome = tecnico_info.get('nome_completo')
     id_chamado = chamado['id_chamado']
 
-    if id_tec in [825]:
-        registrar_notificacao(id_chamado, id_tec)
-        return True
-
     enviar = f'ENVIAR Chamado {id_chamado} para {nome} ({telefone}). >>>'
 
     # === AQUI ENTRARÁ A EVOLUTION API ===
@@ -249,7 +245,10 @@ def verificar_status_chamado(id):
             if data.get('is_deleted') == 1 or status in [5, 6]:
                 logging.info(f'- - - Chamado {id} finalizado ou excluído no GLPI! - - -')
                 deletar_chamado(id)
-                return status
+            if status == 1:
+                logging.info(f'- - - Chamado {id} "desatribuído"! - - -')
+                deletar_chamado(id)
+            return status
             
         elif response.status_code == 404:
             deletar_chamado(id)
@@ -259,3 +258,20 @@ def verificar_status_chamado(id):
     except Exception as e: logging.error(f'-> ERRO na consulta do chamado {id}: {e}')
     return 1
 
+def chamado_notificado(chamado, id_tec):
+    id_chamado = chamado['id_chamado']
+    # Verificar o chamado "verificar_notificacao(id_chamado, id_tech)"
+    if verificar_notificacao(id_chamado, id_tec): return True
+
+    # Obtêm o número do técnico
+    # Se o chamado não tem técnico atribuído (None), não há para quem enviar mensagem.
+    if tecnico_info:= obter_numero_tecnico(id_tec):
+
+    # Enviar mensagem "mensagem_para_tecnico(chamado, tecnico_info, id_tec)"
+        mensagem_para_tecnico(chamado, tecnico_info, id_tec)
+    else: logging.info(f'^^^^ Chamado {id_chamado} retido.')
+
+if __name__=="__main__":
+    pass
+    # print(verificar_status_chamado(10079))
+    print(verificar_status_chamado(10085), 10085)

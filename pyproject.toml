@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "auto-py-to-exe>=2.50.1",
     "dotenv>=0.9.9",
     "python-dotenv>=1.2.2",
     "requests>=2.33.1",

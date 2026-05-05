@@ -1,9 +1,9 @@
 import sqlite3
-import os
 import logging
+from pathlib import Path
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_FILE = os.path.join(BASE_DIR, "automacao_glpi.db")
+BASE_DIR = Path(__file__).resolve().parent.parent
+DB_FILE = BASE_DIR / "automacao_glpi.db"
 
 def conectar():
     """Cria a conexão com o banco de dados SQLite."""

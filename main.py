@@ -1,8 +1,6 @@
 import logging
-import sys
-from glpi_monitor import check_api, obter_token_cache, buscar_chamados_recentes, processar_chamados_brutos, verificar_status_chamado, mensagem_para_tecnico
-from Manager_db.db_manager import criar_tabelas, DB_FILE, verificar_notificacao
-from Manager_db.contatos_manager import obter_numero_tecnico
+from glpi_monitor import check_api, obter_token_cache, buscar_chamados_recentes, processar_chamados_brutos, verificar_status_chamado, chamado_notificado
+from Manager_db.db_manager import criar_tabelas, DB_FILE, sincronizar_base_notificacoes
 import os
 
 logging.basicConfig(
@@ -28,36 +26,31 @@ def executar_monitoramento():
     except Exception as e: logging.error(f"Falha ao tentar conectar com o GLPI! {e}")
 
     if chamados:
-        chamados_padronizados = processar_chamados_brutos(chamados)
-
         # Cria tabela de notificação
         if not os.path.exists(DB_FILE): criar_tabelas()
 
-        for chamado in chamados_padronizados:
-
+        for chamado in processar_chamados_brutos(chamados):
+            tec_id = chamado['id_tecnico']
             # Avalia ANTES de corverter para string
-            if chamado['id_tecnico'] is None: continue
+            if tec_id is None: continue
 
-            id_tec = str(chamado['id_tecnico']) # Garantindo que é string para buscar no JSON
-            id_chamado = chamado['id_chamado']
+        # Transformar tudo em lista para iterar de uma vez
+            tecnicos = tec_id if isinstance(tec_id, list) else [tec_id]
 
-            if verificar_notificacao(id_chamado, id_tec): continue
+            for tec in tecnicos:
+                # verificar_mudanca_tecnica(id_chamado)
+                chamado_notificado(chamado, str(tec))
 
-            tecnico_info = obter_numero_tecnico(id_tec)
-
-            # Se o chamado não tem técnico atribuído (None), não há para quem enviar mensagem.
-            if tecnico_info: mensagem_para_tecnico(chamado, tecnico_info, id_tec)
-            else: logging.error(f'-> Técnico ID {id_tec} não encontrado no JSON. Chamado {id_chamado} retido.')
     else: logging.debug(f'Nenhum chamado encontrado!')
     
     chamados = sincronizar_base_notificacoes()
-    for (id_chamado,) in chamados: verificar_status_chamado(id_chamado)
+    # print(chamados)
+    for (id_chamado,) in chamados: 
+        verificar_status_chamado(id_chamado)
 
     # COM LIST COMPREHENSION
     # # Busca os IDs e já executa a verificação/deleção para cada um em uma linha
     # [verificar_status_chamado(id_ch[0]) for id_ch in sincronizar_base_notificacoes()]
-        
-    pass
 
 if __name__ == "__main__":
     executar_monitoramento()
