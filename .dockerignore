@@ -1,0 +1,22 @@
+# Ignora a pasta do ambiente virtual local
+.venv/
+
+# Ignora os arquivos de cache do Python que pesam na imagem
+__pycache__/
+*.pyc
+
+# Ignora os seus arquivos de log locais (para o contêiner nascer limpo)
+monitor_logs.txt
+
+# Ignora o arquivo de variáveis de ambiente local (vamos injetar isso no docker-compose)
+.env
+
+# Ignora pastas do git
+.git/
+
+
+*.json
+*.md
+*.html
+*.bat
+workspace.code-workspace

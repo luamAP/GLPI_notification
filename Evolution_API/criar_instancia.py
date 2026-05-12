@@ -7,6 +7,8 @@ import http.server as server
 from dotenv import load_dotenv
 import logging
 
+from Manager_db.contatos_manager import formatar_numero
+
 load_dotenv()
 
 EVOLUTION_API_URL = os.getenv("EVOLUTION_API_URL") # API local no Docker
@@ -130,7 +132,7 @@ def enviar_mensagem_whatsapp(numero, mensagem):
     }
 
     # Tratamento de dados
-    numero = ''.join(filter(str.isdigit, str(numero)))
+    numero = formatar_numero(numero)
 
     payload = {
         'number': numero,

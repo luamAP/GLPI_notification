@@ -1,55 +1,16 @@
-version: '3.8'
-
 services:
-  evolution-api:
-    image: atendai/evolution-api:latest
-    container_name: evolution_api
+  automacao-python:
+    build: .
+    container_name: automacao-worker
     restart: always
-    ports:
-      - "8080:8080"
-    environment:
-      - SERVER_URL=${EVOLUTION_API_URL}
-      - AUTHENTICATION_API_KEY=${EVOLUTION_API}
-      
-      # ==========================================
-      # Configurações do Redis
-      # ==========================================
-      - CACHE_REDIS_ENABLED=true
-      - CACHE_REDIS_URI=redis://redis:6379/1
-      - CACHE_REDIS_PREFIX_KEY=evolution
-      
-      # ==========================================
-      # Configurações do Banco de Dados (PostgreSQL)
-      # ==========================================
-      - DATABASE_ENABLED=true
-      - DATABASE_PROVIDER=postgresql
-      - DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
-      - DATABASE_CONNECTION_CLIENT_NAME=evolution
     env_file:
       - .env
-    depends_on:
-      - redis
-      - postgres
-
-  redis:
-    image: redis:alpine
-    container_name: redis_evolution
-    restart: always
-    ports:
-      - "6379:6379"
-
-  postgres:
-    image: postgres:15-alpine
-    container_name: postgres_evolution
-    restart: always
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - TZ=America/Manaus
+    networks:
+      - evolutionapi_default # Nome da rede onde a Evolution está rodando
 
-volumes:
-  postgres_data:
+# Conecta a uma rede externa já existente (a rede da sua Evolution)
+networks:
+  evolutionapi_default: # Nome da rede externa
+    external: true

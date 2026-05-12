@@ -145,15 +145,16 @@ def processar_chamados_brutos(lista_chamados_brutos):
     necessários para o envio do WhatsApp.
     """
     chamados_limpos = []
-    
     for chamado in lista_chamados_brutos:
+        try: 
+            dados_requerente = buscar_usuario(chamado.get('4')) # Nome do Requerente (Usuário)
+            dados_tecnico = buscar_usuario(chamado.get('5')) # Nome do técnico (Usuário)
+        except Exception as erro: raise erro
         # Uso do .get() é uma prática defensiva essencial em integrações
         # Se a chave não existir, retorna None em vez de quebrar o script
         id_chamado   = chamado.get('2')   # ID do Chamado
         titulo       = chamado.get('1')   # Título (Assunto)
-        id_tecnico   = chamado.get('5')   # Técnico atribuído
         status       = chamado.get('12')  # Status (ID ou texto se expand_dropdowns=True)
-        requerente  = buscar_nome_usuario(chamado.get('4'))   # Nome do Requerente (Usuário)
         setor      = chamado.get('83').split('> ')[-1]    # Localização (Setor/Departamento)
         
         # Ignora registros que por algum motivo vieram sem ID
@@ -162,15 +163,15 @@ def processar_chamados_brutos(lista_chamados_brutos):
         chamados_limpos.append({
             "id_chamado": id_chamado,
             "titulo": titulo,
-            "id_tecnico": id_tecnico,
+            "dados_tecnico": dados_tecnico,
             "status": status,
-            "requerente": requerente,
+            "dados_requerente": dados_requerente,
             "setor": setor
         })
         
     return chamados_limpos
 
-def buscar_nome_usuario(user_id):
+def buscar_usuario(user_id, buscar=False):
     """
     Busca os detalhes de um usuário específico pelo ID.
     """
@@ -189,29 +190,43 @@ def buscar_nome_usuario(user_id):
         
         if response.status_code == 200:
             dados_usuario = response.json()
-            # O GLPI retorna 'firstname' e 'realname' (sobrenome)
-            nome = dados_usuario.get('firstname', '')
-            sobrenome = dados_usuario.get('realname', '')
-            return f"{nome} {sobrenome}".strip() or dados_usuario.get('name') # 'name' é o login
-        
-        return f"Usuário ID {user_id}"
-    except Exception: return "ERRO ao buscar nome"
 
-def mensagem_para_tecnico(chamado, tecnico_info, id_tec):
+            if buscar=="nome":
+                # O GLPI retorna 'firstname' e 'realname' (sobrenome)
+                nome = dados_usuario['firstname']
+                sobrenome = dados_usuario['realname']
+                return f"{nome} {sobrenome}".strip() or dados_usuario['name'] # 'name' é o login
+
+            if buscar=="celular":
+                celular = dados_usuario['mobile']
+                return celular or None
+            else:
+                return dados_usuario
+
+        return user_id
+    # except Exception as e: raise f"ERRO ao buscar nome.\n{e}"
+    except: raise
+
+def mensagem_para_tecnico(chamado, tecnico_info):
     """ Organiza a mensagem que será enviada para o técnico """
-    telefone = tecnico_info.get('telefone')
-    nome = tecnico_info.get('nome_completo')
+    requerente_info = chamado['dados_requerente']
+    telefone = tecnico_info.get('mobile')
+    nome = tecnico_info.get('firstname')+' '+tecnico_info.get('realname')
     id_chamado = chamado['id_chamado']
-
+    id_tec = tecnico_info['id']
+    requerente = requerente_info.get('firstname')+' '+requerente_info.get('realname')
+    setor = chamado.get('setor')
+    titulo = chamado.get('titulo')
+                         
     enviar = f'ENVIAR Chamado {id_chamado} para {nome} ({telefone}). >>>'
 
     # === AQUI ENTRARÁ A EVOLUTION API ===
     texto_msg = (
         f"🆕 *Novo chamado atribuído {nome}!*\n\n"
-        f"✍ Requerente: {chamado['requerente']}\n"
-        f"📌 Localização/Setor: {chamado['setor']}\n\n"
+        f"✍ Requerente: {requerente}\n"
+        f"📌 Localização/Setor: {setor}\n\n"
         f"🆔 *ID:* {id_chamado}\n"
-        f"▶ *Título:* {chamado['titulo']}\n\n"
+        f"▶ *Título:* {titulo}\n\n"
         f"Link para o chamado:\n"
         f"suporteseminf.manaus.am.gov.br/front/ticket.form.php?id={id_chamado}"
     )
@@ -261,17 +276,16 @@ def verificar_status_chamado(id):
 def chamado_notificado(chamado, id_tec):
     id_chamado = chamado['id_chamado']
     # Verificar o chamado "verificar_notificacao(id_chamado, id_tech)"
-    if verificar_notificacao(id_chamado, id_tec): return True
+    try:
+        if verificar_notificacao(id_chamado, id_tec): return True
 
-    # Obtêm o número do técnico
-    # Se o chamado não tem técnico atribuído (None), não há para quem enviar mensagem.
-    if tecnico_info:= obter_numero_tecnico(id_tec):
-
-    # Enviar mensagem "mensagem_para_tecnico(chamado, tecnico_info, id_tec)"
-        mensagem_para_tecnico(chamado, tecnico_info, id_tec)
-    else: logging.info(f'^^^^ Chamado {id_chamado} retido.')
+        # Obtêm o número do técnico
+        # Se o chamado não tem técnico atribuído (None), não há para quem enviar mensagem.
+        if chamado['dados_tecnico']: mensagem_para_tecnico(chamado, chamado['dados_tecnico'])
+        else: logging.info(f'^^^^ Chamado {id_chamado} retido.')
+    except Exception as e: logging.error(e)
 
 if __name__=="__main__":
     pass
     # print(verificar_status_chamado(10079))
-    print(verificar_status_chamado(10085), 10085)
+    # print(verificar_status_chamado(10085), 10085)

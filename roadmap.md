@@ -37,3 +37,9 @@
     2. [x] Técnico trocado, atualizar o banco de dados e enviar para o novo técnico
 
 11. [x] Criar um executável para rodar em um servidor
+
+12. [ ] Notificar requerente
+    1. [ ] Abertura de chamado
+    2. [ ] Atribuição para o técnico
+    3. [ ] Pendente de informação (status **"Pendente"**)
+    4. [ ] Chamado solucionado
