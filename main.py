@@ -67,3 +67,4 @@ if __name__ == "__main__":
             try: executar_monitoramento()
             except Exception as e: logging.critical(f"Erro inesperado no monitoramento: {e}")
         time.sleep(60*5)
+    # executar_monitoramento()

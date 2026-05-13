@@ -7,7 +7,7 @@ import base64
 
 from Manager_db.db_manager import registrar_notificacao, deletar_chamado, verificar_notificacao
 from Evolution_API.criar_instancia import enviar_mensagem_whatsapp
-from Manager_db.contatos_manager import obter_numero_tecnico
+# from Manager_db.contatos_manager import obter_numero_tecnico
 # Carrega as vars do arquivo .env
 load_dotenv()
 
@@ -217,7 +217,7 @@ def mensagem_para_tecnico(chamado, tecnico_info):
     requerente = requerente_info.get('firstname')+' '+requerente_info.get('realname')
     setor = chamado.get('setor')
     titulo = chamado.get('titulo')
-                         
+
     enviar = f'ENVIAR Chamado {id_chamado} para {nome} ({telefone}). >>>'
 
     # === AQUI ENTRARÁ A EVOLUTION API ===
@@ -231,8 +231,12 @@ def mensagem_para_tecnico(chamado, tecnico_info):
         f"suporteseminf.manaus.am.gov.br/front/ticket.form.php?id={id_chamado}"
     )
 
-    sucesso = enviar_mensagem_whatsapp(telefone, texto_msg)
-
+    if not telefone is None: 
+        sucesso = enviar_mensagem_whatsapp(telefone, texto_msg)
+    else:
+        logging.info(f'Contato de {nome} ainda não cadastrado.')
+        return False
+    
     if sucesso:
         logging.info(f'{enviar} Mensagem entregue.')
         registrar_notificacao(id_chamado, id_tec)

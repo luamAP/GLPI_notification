@@ -12,7 +12,7 @@ from Manager_db.contatos_manager import formatar_numero
 load_dotenv()
 
 EVOLUTION_API_URL = os.getenv("EVOLUTION_API_URL") # API local no Docker
-EVOLUTION_API_KEY = os.getenv("EVOLUTION_API")
+EVOLUTION_API_KEY = os.getenv("EVOLUTION_API_KEY")
 NOME_INSTANCIA = "suporte_glpi" # Nome interno da sessão
 
 def obter_qr_code():

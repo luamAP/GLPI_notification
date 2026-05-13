@@ -48,10 +48,11 @@ def formatar_numero(telefone):
 
     # 4. Validação Final (Se após as tentativas o tamanho for bizarro, aí sim erro)
     if len(numero) not in (12, 13):
-        logging.error(f"Número {telefone} resultou em formato inválido: {numero}")
+        logging.error(f'Número "{telefone}" resultou em formato inválido: "{numero}"')
         raise ValueError(f"Telefone fora do padrão: {numero}")
 
     return numero
 
 if __name__=="__main__":
-    pass
+    print(formatar_numero(92982411933))
+    print(formatar_numero('92982411933'))
