@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DB_FILE = BASE_DIR / "automacao_glpi.db"
+DB_FILE = BASE_DIR / "dados" / "automacao_glpi.db"
 
 def conectar():
     """Cria a conexão com o banco de dados SQLite."""

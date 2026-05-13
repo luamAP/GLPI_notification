@@ -25,7 +25,10 @@ def obter_token_cache():
     """ Lê o arquivo 'glpi_session.txt' para obter o token """
     try: 
         with open (ARQUIVO_SESSAO, 'r') as f: return f.read().strip()
-    except FileNotFoundError: return None
+    except FileNotFoundError: 
+        logging.warning("Token de sessão não encontrado. Iniciando nova sessão...")
+        iniciar_sessao_glpi()
+        return obter_token_cache() # Tenta ler novamente após criar o arquivo
     
 def salvar_token_cache(token):
     """ Cria o arquivo 'glpi_session.txt' com o token da API """
@@ -40,7 +43,6 @@ def remove_file(caminho):
 def check_api():
     """ Checa a "Saúde da API" do GLPI """
     login_str = f"{LOGIN_GLPI}:{SENHA_GLPI}"
-    b64_cred = base64.b64encode(login_str.encode('utf-8')).decode('utf-8')
 
     headers = {
         'Content-Type': 'application/json',
