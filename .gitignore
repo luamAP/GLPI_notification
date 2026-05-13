@@ -5,7 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
-*.db
+# *.db
 
 # Virtual environments
 .venv
@@ -16,6 +16,6 @@ tecnicos.json
 *.txt
 *.code-workspace
 qrcode_temp.html
-automacao_glpi.db
+# automacao_glpi.db
 glpi_session.txt
 *.json
