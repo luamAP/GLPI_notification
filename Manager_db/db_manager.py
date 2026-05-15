@@ -14,7 +14,6 @@ def criar_tabelas():
     conexao = conectar()
     cursor = conexao.cursor()
     
-    # Criamos uma tabela simples. A chave primária é o próprio ID do chamado.
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS chamados_notificados (
             id_chamado INTEGER,

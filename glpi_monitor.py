@@ -283,6 +283,9 @@ def verificar_status_chamado(id):
             if status == 1:
                 logging.info(f'- - - Chamado {id} "desatribuído"! - - -')
                 deletar_chamado(id)
+            if status == 4: 
+                logging.info(f'- - - Chamado {id} pendente de informação! - - -')
+                # Implementar lógica de mensagem para o requerente
             return status
             
         elif response.status_code == 404:
@@ -304,6 +307,4 @@ def chamado_notificado(chamado, dados_tec):
 
 if __name__=="__main__":
 
-    # print(verificar_status_chamado(10079))
-    # print(verificar_status_chamado(10085), 10085)
     pass

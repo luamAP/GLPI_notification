@@ -45,10 +45,8 @@ def executar_monitoramento():
     else: logging.debug(f'Nenhum chamado encontrado!')
     
     chamados = sincronizar_base_notificacoes()
-    # print(f'{chamados}\n\n')
     logging.debug(f'Testando sincronizar_base_notificacoes')
-    for (id_chamado,) in chamados: 
-        verificar_status_chamado(id_chamado)
+    for (id_chamado,) in chamados: verificar_status_chamado(id_chamado)
 
     # COM LIST COMPREHENSION
     # # Busca os IDs e já executa a verificação/deleção para cada um em uma linha
