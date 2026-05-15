@@ -30,20 +30,23 @@ def verificar_notificacao(id_chamado, id_tecnico):
     """Verifica se um chamado já está no banco de dados."""
     conexao = conectar()
     cursor = conexao.cursor()
-    
-    cursor.execute("SELECT 1 FROM chamados_notificados WHERE id_chamado = ? AND id_tecnico = ?", (id_chamado,id_tecnico))
-    resultado = cursor.fetchone()
-    
-    conexao.close()
+        
+    try:
+        cursor.execute("SELECT 1 FROM chamados_notificados WHERE id_chamado = ? AND id_tecnico = ?", (id_chamado,id_tecnico))
+        resultado = cursor.fetchone()
+    except Exception as e:
+        logging.error(f"Erro ao verificar notificação para o chamado {id_chamado} e técnico {id_tecnico}: {e}")
+        resultado = None
+    finally: conexao.close()
     
     # Se resultado for None, não foi notificado. Se tiver algo, já foi.
-    return resultado is not None
+    return resultado
 
 def registrar_notificacao(id_chamado, id_tecnico):
     """Registra que um chamado foi notificado."""
     conexao = conectar()
     cursor = conexao.cursor()
-    
+
     try:
         cursor.execute("INSERT INTO chamados_notificados (id_chamado, id_tecnico) VALUES (?, ?)", (id_chamado, id_tecnico))
         conexao.commit()

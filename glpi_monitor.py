@@ -148,30 +148,35 @@ def processar_chamados_brutos(lista_chamados_brutos):
     necessários para o envio do WhatsApp.
     """
     chamados_limpos = []
-    for chamado in lista_chamados_brutos:
+    # for chamado in lista_chamados_brutos:
+    for i in range(len(lista_chamados_brutos)):
+        chamado = lista_chamados_brutos[i]
         try: 
             dados_requerente = buscar_usuario(chamado.get('4')) # Nome do Requerente (Usuário)
-            dados_tecnico = buscar_usuario(chamado.get('5')) # Nome do técnico (Usuário)
-        except Exception as erro: raise erro
-        # Uso do .get() é uma prática defensiva essencial em integrações
-        # Se a chave não existir, retorna None em vez de quebrar o script
-        id_chamado   = chamado.get('2')   # ID do Chamado
-        titulo       = chamado.get('1')   # Título (Assunto)
-        status       = chamado.get('12')  # Status (ID ou texto se expand_dropdowns=True)
-        setor      = chamado.get('83').split('> ')[-1]    # Localização (Setor/Departamento)
-        
-        # Ignora registros que por algum motivo vieram sem ID
-        if not id_chamado: continue
+            id_tecnico = chamado.get('5') # Nome do técnico (Usuário)
+            if id_tecnico is None: dados_tecnico = None
+            elif type(id_tecnico) is list: dados_tecnico = list(map(buscar_usuario, id_tecnico))
+            else: dados_tecnico = [buscar_usuario(id_tecnico)] # Nome do técnico (Usuário)
+
+            # Uso do .get() é uma prática defensiva essencial em integrações
+            # Se a chave não existir, retorna None em vez de quebrar o script
+            id_chamado   = chamado.get('2')   # ID do Chamado
+            titulo       = chamado.get('1')   # Título (Assunto)
+            status       = chamado.get('12')  # Status (ID ou texto se expand_dropdowns=True)
+            setor      = chamado.get('83').split('> ')[-1]    # Localização (Setor/Departamento)
             
-        chamados_limpos.append({
-            "id_chamado": id_chamado,
-            "titulo": titulo,
-            "dados_tecnico": dados_tecnico,
-            "status": status,
-            "dados_requerente": dados_requerente,
-            "setor": setor
-        })
-        
+            # Ignora registros que por algum motivo vieram sem ID
+            if not id_chamado: continue
+                
+            chamados_limpos.append({
+                "id_chamado": id_chamado,
+                "titulo": titulo,
+                "dados_tecnico": dados_tecnico,
+                "status": status,
+                "dados_requerente": dados_requerente,
+                "setor": setor
+            })
+        except Exception as erro: raise erro
     return chamados_limpos
 
 def buscar_usuario(user_id, buscar=False):
@@ -204,49 +209,57 @@ def buscar_usuario(user_id, buscar=False):
                 celular = dados_usuario['mobile']
                 return celular or None
             else:
+                dados_usuario = {
+                    'id': dados_usuario.get('id'),
+                    'usuario': dados_usuario.get('name'),
+                    'telefone': dados_usuario.get('mobile'),
+                    'nome': dados_usuario.get('firstname')+' '+dados_usuario.get('realname'),
+                    'localizacao': dados_usuario.get('location')
+                }
+
                 return dados_usuario
 
-        return user_id
-    # except Exception as e: raise f"ERRO ao buscar nome.\n{e}"
-    except: raise
+        else: logging.error(f"ERRO ao buscar usuário {user_id}: Status {response.status_code}")
+    except Exception as e: logging.error(f"ERRO ao buscar nome.\n{e}")
 
 def mensagem_para_tecnico(chamado, tecnico_info):
     """ Organiza a mensagem que será enviada para o técnico """
-    requerente_info = chamado['dados_requerente']
-    telefone = tecnico_info.get('mobile')
-    nome = tecnico_info.get('firstname')+' '+tecnico_info.get('realname')
-    id_chamado = chamado['id_chamado']
-    id_tec = tecnico_info['id']
-    requerente = requerente_info.get('firstname')+' '+requerente_info.get('realname')
-    setor = chamado.get('setor')
-    titulo = chamado.get('titulo')
+    try:
+        requerente_info = chamado['dados_requerente']
+        
+        id_chamado = chamado['id_chamado']
+        setor = chamado['setor']
+        titulo = chamado['titulo']
+        id_tec = tecnico_info['id']
+        nome = tecnico_info['nome']
+        telefone = tecnico_info['telefone']
+        requerente = requerente_info['nome']
 
-    enviar = f'ENVIAR Chamado {id_chamado} para {nome} ({telefone}). >>>'
+        enviar = f'ENVIAR Chamado {id_chamado} para {nome} ({telefone}). >>>'
 
-    # === AQUI ENTRARÁ A EVOLUTION API ===
-    texto_msg = (
-        f"🆕 *Novo chamado atribuído {nome}!*\n\n"
-        f"✍ Requerente: {requerente}\n"
-        f"📌 Localização/Setor: {setor}\n\n"
-        f"🆔 *ID:* {id_chamado}\n"
-        f"▶ *Título:* {titulo}\n\n"
-        f"Link para o chamado:\n"
-        f"suporteseminf.manaus.am.gov.br/front/ticket.form.php?id={id_chamado}"
-    )
-
-    if not telefone is None: 
-        sucesso = enviar_mensagem_whatsapp(telefone, texto_msg)
-    else:
-        logging.info(f'Contato de {nome} ainda não cadastrado.')
-        return False
-    
-    if sucesso:
-        logging.info(f'{enviar} Mensagem entregue.')
-        registrar_notificacao(id_chamado, id_tec)
-        return True
-    else: 
-        logging.error(f'{enviar} Falha no envio.')
-        return False
+        # === AQUI ENTRARÁ A EVOLUTION API ===
+        texto_msg = (
+            f"🆕 *Novo chamado atribuído {nome}!*\n\n"
+            f"✍ Requerente: {requerente}\n"
+            f"📌 Localização/Setor: {setor}\n\n"
+            f"🆔 *ID:* {id_chamado}\n"
+            f"▶ *Título:* {titulo}\n\n"
+            f"Link para o chamado:\n"
+            f"suporteseminf.manaus.am.gov.br/front/ticket.form.php?id={id_chamado}"
+        )
+        if not telefone is None: sucesso = enviar_mensagem_whatsapp(telefone, texto_msg)
+        else:
+            logging.info(f'Contato de {nome} ainda não cadastrado.')
+            return False
+        
+        if sucesso:
+            logging.info(f'{enviar} Mensagem entregue.')
+            registrar_notificacao(id_chamado, id_tec)
+            return True
+        else: 
+            logging.error(f'{enviar} Falha no envio.')
+            return False
+    except Exception as e: logging.error(f'ERRO ao organizar mensagem para técnico: {e}')
 
 def verificar_status_chamado(id):
     """ Verifica se um chaamdo foi solucionado ou excluído """
@@ -280,19 +293,17 @@ def verificar_status_chamado(id):
     except Exception as e: logging.error(f'-> ERRO na consulta do chamado {id}: {e}')
     return 1
 
-def chamado_notificado(chamado, id_tec):
+def chamado_notificado(chamado, dados_tec):
     id_chamado = chamado['id_chamado']
+    id_tec = dados_tec['id']
     # Verificar o chamado "verificar_notificacao(id_chamado, id_tech)"
     try:
-        if verificar_notificacao(id_chamado, id_tec): return True
-
-        # Obtêm o número do técnico
-        # Se o chamado não tem técnico atribuído (None), não há para quem enviar mensagem.
-        if chamado['dados_tecnico']: mensagem_para_tecnico(chamado, chamado['dados_tecnico'])
-        else: logging.info(f'^^^^ Chamado {id_chamado} retido.')
+        if not verificar_notificacao(id_chamado, id_tec) is None: return True
+        else: mensagem_para_tecnico(chamado, dados_tec)
     except Exception as e: logging.error(e)
 
 if __name__=="__main__":
-    pass
+
     # print(verificar_status_chamado(10079))
     # print(verificar_status_chamado(10085), 10085)
+    pass
