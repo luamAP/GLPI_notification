@@ -11,6 +11,8 @@
 | docker logs \-f automacao-worker | Mostra a saída do terminal do Python em tempo real. | Para monitorar as execuções, ver os logging.info e caçar erros. |
 | docker exec \-it automacao-worker bash | Abre um terminal (shell) por dentro do contêiner rodando. | Para investigar se um arquivo foi copiado corretamente ou testar o ping *de dentro* do Docker. |
 | docker system prune \-a | **\[CUIDADO\]** Apaga contêineres parados, redes sem uso e imagens antigas. | Quando o disco do servidor Linux começar a ficar cheio (limpeza de faxina). |
+| docker logs --tail 10 meu-app | ver as últimas 10 linhas de um contêiner chamado meu-app | Para ver os logs já em produção depois de um longo periodo de tempo |
+| docker restart | Usado para **parar** e **reiniciar** um ou mais containers em execução | É uma operação comum para aplicar alterações de configuração ou recuperar um contêiner que possa estar com problemas |
 
 ---
 

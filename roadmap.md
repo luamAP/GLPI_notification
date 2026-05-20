@@ -38,8 +38,7 @@
 
 11. [x] Criar um executável para rodar em um servidor
 
-12. [ ] Notificar requerente
-    1. [ ] Abertura de chamado
-    2. [ ] Atribuição para o técnico
-    3. [ ] Pendente de informação (status **"Pendente"**)
-    4. [ ] Chamado solucionado
+12. [x] Notificar requerente
+    1. [x] Atribuição para o técnico
+    2. [x] Pendente de informação (status **"Pendente"**)
+    3. [x] Chamado solucionado

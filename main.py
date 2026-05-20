@@ -1,6 +1,6 @@
 import logging
 from glpi_monitor import check_api, obter_token_cache, buscar_chamados_recentes, processar_chamados_brutos, verificar_status_chamado, chamado_notificado
-from Manager_db.db_manager import criar_tabelas, DB_FILE, sincronizar_base_notificacoes
+from Manager_db.db_manager import criar_tabelas, DB_FILE, sincronizar_base_notificacoes, registrar_notificacao, verificar_notificacao, status_chamado
 import os, sys
 import time
 from datetime import datetime, time as dt_time
@@ -36,16 +36,15 @@ def executar_monitoramento():
         try: chamados_limpos = processar_chamados_brutos(chamados)
         except Exception as e: logging.error(f'ERRO ao processar dados brutos: {e}')
         for chamado in chamados_limpos:
-            # Avalia ANTES de corverter para string
-            if chamado['dados_tecnico'] is None: 
-                logging.info(f'>>> Chamado {chamado["id_chamado"]} sem técnico atribuído. <<<')
-                continue
-            for tec in chamado['dados_tecnico']: chamado_notificado(chamado, tec)
+            # Cria o chamado na tabela notificacoes_requerentes se não existir
+            if (verificar_notificacao(chamado['id_chamado']) is None) or (chamado['status']!=status_chamado(chamado['id_chamado'])): registrar_notificacao(chamado['id_chamado'], chamado['status'], False)
+            if chamado['dados_tecnico'] is None: logging.info(f'>>> Chamado {chamado["id_chamado"]} sem técnico atribuído. <<<')
+            else: 
+                for tec in chamado['dados_tecnico']: chamado_notificado(chamado, tec)
 
     else: logging.debug(f'Nenhum chamado encontrado!')
     
     chamados = sincronizar_base_notificacoes()
-    logging.debug(f'Testando sincronizar_base_notificacoes')
     for (id_chamado,) in chamados: verificar_status_chamado(id_chamado)
 
     # COM LIST COMPREHENSION
@@ -53,10 +52,11 @@ def executar_monitoramento():
     # [verificar_status_chamado(id_ch[0]) for id_ch in sincronizar_base_notificacoes()]
 
 if __name__ == "__main__":
-    # while True:
+    logging.info(f'SISTEMA INICIADO!')
+    while True:
         # Se for fim de semana (valores menores que 5) e estiver entre 7:50 - 16:50 
-        # if (datetime.now().weekday() <= 5) and (dt_time(7,50) <= datetime.now().time() <= dt_time(16,50)): 
+        if (datetime.now().weekday() <= 5) and (dt_time(7,50) <= datetime.now().time() <= dt_time(16,50)): 
             try: executar_monitoramento()
             except Exception as e: logging.critical(f"Erro inesperado no monitoramento: {e}")
-        # time.sleep(60*0.5)
+        time.sleep(60*5)
     # executar_monitoramento()

@@ -5,7 +5,7 @@ import logging
 
 import base64
 
-from Manager_db.db_manager import registrar_notificacao, deletar_chamado, verificar_notificacao
+from Manager_db.db_manager import registrar_notificacao, deletar_chamado, verificar_notificacao, telefone_do_requerente, status_chamado
 from Evolution_API.criar_instancia import enviar_mensagem_whatsapp
 # from Manager_db.contatos_manager import obter_numero_tecnico
 # Carrega as vars do arquivo .env
@@ -225,6 +225,7 @@ def buscar_usuario(user_id, buscar=False):
 def mensagem_para_tecnico(chamado, tecnico_info):
     """ Organiza a mensagem que será enviada para o técnico """
     try:
+        if tecnico_info is None: return False
         requerente_info = chamado['dados_requerente']
         
         id_chamado = chamado['id_chamado']
@@ -242,7 +243,7 @@ def mensagem_para_tecnico(chamado, tecnico_info):
             f"🆕 *Novo chamado atribuído {nome}!*\n\n"
             f"✍ Requerente: {requerente}\n"
             f"📌 Localização/Setor: {setor}\n\n"
-            f"🆔 *ID:* {id_chamado}\n"
+            f"🆔: {id_chamado}\n"
             f"▶ *Título:* {titulo}\n\n"
             f"Link para o chamado:\n"
             f"suporteseminf.manaus.am.gov.br/front/ticket.form.php?id={id_chamado}"
@@ -261,9 +262,54 @@ def mensagem_para_tecnico(chamado, tecnico_info):
             return False
     except Exception as e: logging.error(f'ERRO ao organizar mensagem para técnico: {e}')
 
+def mensagem_para_requerente(id_chamado, id_req, status, tecnico):
+    """ Organiza a mensagem que será enviada para o requerente """
+    try:
+        dados_banco = telefone_do_requerente(id_req)
+        if dados_banco is None: return False
+
+        telefone, requerente = dados_banco
+        enviar = f'NOTIFICAR REQUERENTE {requerente} do chamado {id_chamado} ({telefone}). >>>'
+
+        # === AQUI ENTRARÁ A EVOLUTION API ===
+        if status==2: 
+            texto_msg = (
+                f"🟢*Chamado atribuído!*\n\n"
+                f"👩‍💻👨‍💻 Técnico/Analista:\n{tecnico}\n"
+                f"🆔: {id_chamado}\n\n"
+                f"Link para o chamado:\n"
+                f"suporteseminf.manaus.am.gov.br/front/ticket.form.php?id={id_chamado}"
+            )
+        elif status==4: 
+            texto_msg = (
+                f"⚠*Chamado pendente de informação!*\n\n"
+                f"🆔: {id_chamado}\n\n"
+                f"Seu chamado precisa da sua atenção!\n"
+                f"suporteseminf.manaus.am.gov.br/front/ticket.form.php?id={id_chamado}"
+            )
+        elif status==5: 
+            texto_msg = (
+                f"*Chamado solucionado!*\n\n"
+                f"🆔: {id_chamado}\n\n"
+                f"Verifique a resolução do chamado. Aprove✔ ou Recuse❌.\n"
+                f"suporteseminf.manaus.am.gov.br/front/ticket.form.php?id={id_chamado}"
+            )
+        else: return False
+        if not telefone is None: sucesso = enviar_mensagem_whatsapp(telefone, texto_msg)
+        
+        if sucesso:
+            logging.info(f'{enviar} Mensagem entregue.')
+            registrar_notificacao(id_chamado, status, False)
+            return True
+        else: 
+            logging.error(f'{enviar} Falha no envio.')
+            return False
+    except Exception as e: logging.error(f'ERRO ao organizar mensagem para o requerente: {e}')
+
 def verificar_status_chamado(id):
     """ Verifica se um chaamdo foi solucionado ou excluído """
-    url = f'{GLPI_API_URL}/Ticket/{id}'
+    url_ticket = f'{GLPI_API_URL}/Ticket/{id}'
+    url_ticket_requerente = f'{GLPI_API_URL}/Ticket/{id}/Ticket_User'
 
     headers = {
         "Content-Type": "application/json",
@@ -271,30 +317,50 @@ def verificar_status_chamado(id):
     }
 
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url_ticket, headers=headers)
 
-        if response.status_code == 200:
+        if response.status_code == 404:
+            deletar_chamado(id,"chamados_notificados")
+            logging.info(f' - - - Chamado {id} não encontrado (404) - - - ')
+            return 0
+    
+        elif response.status_code == 200:
             data = response.json()
             status = data.get('status')
+            status_no_banco = status_chamado(id)
+            # Registrar o chamado na tabela notificacoes_requerentes
 
             if data.get('is_deleted') == 1 or status in [5, 6]:
                 logging.info(f'- - - Chamado {id} finalizado ou excluído no GLPI! - - -')
-                deletar_chamado(id)
-            if status == 1:
+                deletar_chamado(id,"chamados_notificados")
+            if status == 1 and status!=status_no_banco:
                 logging.info(f'- - - Chamado {id} "desatribuído"! - - -')
-                deletar_chamado(id)
-            if status == 4: 
-                logging.info(f'- - - Chamado {id} pendente de informação! - - -')
-                # Implementar lógica de mensagem para o requerente
-            return status
-            
-        elif response.status_code == 404:
-            deletar_chamado(id)
-            logging.info(f' - - - Chamado {id} não encontrado (404) - - - ')
-            return 0
+                deletar_chamado(id,"chamados_notificados")
+            if status == 4 and status_no_banco!=status: logging.info(f'- - - Chamado {id} pendente de informação! - - -')
+
+        else: logging.critical(f'ERRO DESCONHECIDO {response.status_code}: {response}')
         
     except Exception as e: logging.error(f'-> ERRO na consulta do chamado {id}: {e}')
-    return 1
+    
+    if (status in [2,4,5,6]) and (status_no_banco!=status): 
+        try: 
+            response = requests.get(url_ticket_requerente, headers=headers)
+            id_requerente = None
+            if response.status_code == 200:
+                usuarios = response.json()
+                for user in usuarios: 
+                    if user.get('type')==1: 
+                        id_requerente = user.get('users_id')
+                        break
+            elif response.status_code == 404: logging.info(f'ERRO 404 ao buscar o id do requerente')
+        except Exception as e: logging.error(f'--> ERRO na consulta do requerente do chamado {id}')
+        
+        if not id_requerente is None: mensagem_para_requerente(id, id_requerente, status, None)
+    if status==5: 
+        logging.info(f'Excluindo chamado #{id} das notificações dos requerentes')
+        deletar_chamado(id, "notificacoes_requerentes")
+
+    return status
 
 def chamado_notificado(chamado, dados_tec):
     id_chamado = chamado['id_chamado']
@@ -302,9 +368,14 @@ def chamado_notificado(chamado, dados_tec):
     # Verificar o chamado "verificar_notificacao(id_chamado, id_tech)"
     try:
         if not verificar_notificacao(id_chamado, id_tec) is None: return True
-        else: mensagem_para_tecnico(chamado, dados_tec)
+        else: 
+            mensagem_para_tecnico(chamado, dados_tec)
+            # Enviar mensagem para o requerente também
+            if verificar_notificacao(id_chamado) is None: mensagem_para_requerente(chamado['id_chamado'], 
+                                    chamado['dados_requerente']['id'], 
+                                    chamado['status'], dados_tec['nome'])
     except Exception as e: logging.error(e)
 
 if __name__=="__main__":
-
+    verificar_status_chamado(10167)
     pass
