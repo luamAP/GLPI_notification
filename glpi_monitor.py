@@ -249,9 +249,7 @@ def mensagem_para_tecnico(chamado, tecnico_info):
             f"suporteseminf.manaus.am.gov.br/front/ticket.form.php?id={id_chamado}"
         )
         if not telefone is None: sucesso = enviar_mensagem_whatsapp(telefone, texto_msg)
-        else:
-            logging.info(f'Contato de {nome} ainda não cadastrado.')
-            return False
+        else: return False
         
         if sucesso:
             logging.info(f'{enviar} Mensagem entregue.')
@@ -266,7 +264,7 @@ def mensagem_para_requerente(id_chamado, id_req, status, tecnico):
     """ Organiza a mensagem que será enviada para o requerente """
     try:
         dados_banco = telefone_do_requerente(id_req)
-        if dados_banco is None: return False
+        if dados_banco is None: return "CONTATO VAZIO"
 
         telefone, requerente = dados_banco
         enviar = f'NOTIFICAR REQUERENTE {requerente} do chamado {id_chamado} ({telefone}). >>>'
@@ -294,17 +292,18 @@ def mensagem_para_requerente(id_chamado, id_req, status, tecnico):
                 f"Verifique a resolução do chamado. Aprove✔ ou Recuse❌.\n"
                 f"suporteseminf.manaus.am.gov.br/front/ticket.form.php?id={id_chamado}"
             )
-        else: return False
-        if not telefone is None: sucesso = enviar_mensagem_whatsapp(telefone, texto_msg)
+        sucesso = enviar_mensagem_whatsapp(telefone, texto_msg)
         
         if sucesso:
             logging.info(f'{enviar} Mensagem entregue.')
             registrar_notificacao(id_chamado, status, False)
-            return True
+            return "SUCESSO"
         else: 
             logging.error(f'{enviar} Falha no envio.')
-            return False
-    except Exception as e: logging.error(f'ERRO ao organizar mensagem para o requerente: {e}')
+            return "FALHA"
+    except Exception as e: 
+        logging.error(f'ERRO ao organizar mensagem para o requerente: {e}')
+        return "ERRO INTERNO"
 
 def verificar_status_chamado(id):
     """ Verifica se um chaamdo foi solucionado ou excluído """
@@ -342,6 +341,7 @@ def verificar_status_chamado(id):
         
     except Exception as e: logging.error(f'-> ERRO na consulta do chamado {id}: {e}')
     
+    enviado = "IGNORADO"
     if (status in [2,4,5,6]) and (status_no_banco!=status): 
         try: 
             response = requests.get(url_ticket_requerente, headers=headers)
@@ -354,10 +354,9 @@ def verificar_status_chamado(id):
                         break
             elif response.status_code == 404: logging.info(f'ERRO 404 ao buscar o id do requerente')
         except Exception as e: logging.error(f'--> ERRO na consulta do requerente do chamado {id}')
-        
-        if not id_requerente is None: mensagem_para_requerente(id, id_requerente, status, None)
-    if status==5: 
-        logging.info(f'Excluindo chamado #{id} das notificações dos requerentes')
+        if not id_requerente is None: enviado = mensagem_para_requerente(id, id_requerente, status, None)
+    if status==5 and enviado in ["SUCESSO", "SEM CONTATO", "IGNORADO"]: 
+        logging.info(f'Excluindo chamado #{id} das notificações dos requerentes (MOTIVO: {enviado})')
         deletar_chamado(id, "notificacoes_requerentes")
 
     return status
