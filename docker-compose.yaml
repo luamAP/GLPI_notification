@@ -10,7 +10,7 @@ services:
     networks:
       - evolutionapi_default # Nome da rede onde a Evolution está rodando
     volumes: 
-      - ./dados:/app/dados/automacao_glpi.db # Monta o arquivo de banco de dados para persistência
+      - ./dados:/app/dados # Monta o arquivo de banco de dados para persistência
 
 # Conecta a uma rede externa já existente (a rede da sua Evolution)
 networks:
