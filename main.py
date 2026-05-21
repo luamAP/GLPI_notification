@@ -1,17 +1,21 @@
 import logging
+from logging.handlers import RotatingFileHandler
 from glpi_monitor import check_api, obter_token_cache, buscar_chamados_recentes, processar_chamados_brutos, verificar_status_chamado, chamado_notificado
 from Manager_db.db_manager import criar_tabelas, DB_FILE, sincronizar_base_notificacoes, registrar_notificacao, verificar_notificacao, status_chamado
 import os, sys
 import time
 from datetime import datetime, time as dt_time
 
+DB_FILE.parent.mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format='[%(asctime)s] [%(levelname)s]-%(funcName)s: %(message)s',
     datefmt='%d/%m/%Y %H:%M:%S',
     handlers=[
-        # logging.FileHandler("monitor_logs.txt", encoding='utf-8') # Salva os logs no arquivo "monitor_logs.txt"
-        logging.StreamHandler(sys.stdout) # Exibe no terminal também
+        # ALTERE esta linha para apontar dinamicamente para dentro da pasta dados:
+        RotatingFileHandler(DB_FILE.parent / "monitor_logs.log", maxBytes=5*1024*1024, backupCount=5, encoding='utf-8'),
+        logging.StreamHandler(sys.stdout)
     ]
 )
 
