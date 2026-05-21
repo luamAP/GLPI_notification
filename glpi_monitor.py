@@ -355,7 +355,7 @@ def verificar_status_chamado(id):
             elif response.status_code == 404: logging.info(f'ERRO 404 ao buscar o id do requerente')
         except Exception as e: logging.error(f'--> ERRO na consulta do requerente do chamado {id}')
         if not id_requerente is None: enviado = mensagem_para_requerente(id, id_requerente, status, None)
-    if status==5 and enviado in ["SUCESSO", "SEM CONTATO", "IGNORADO"]: 
+    if status==5 and enviado in ["SUCESSO", "CONTATO VAZIO", "IGNORADO"]: 
         logging.info(f'Excluindo chamado #{id} das notificações dos requerentes (MOTIVO: {enviado})')
         deletar_chamado(id, "notificacoes_requerentes")
 
