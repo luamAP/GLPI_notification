@@ -289,7 +289,7 @@ def mensagem_para_requerente(id_chamado, id_req, status, tecnico):
             texto_msg = (
                 f"*Chamado solucionado!*\n\n"
                 f"🆔: {id_chamado}\n\n"
-                f"Verifique a resolução do chamado. Aprove✔ ou Recuse❌.\n"
+                f"Verifique a resolução do chamado. Aprove✅ ou Recuse❌.\n"
                 f"suporteseminf.manaus.am.gov.br/front/ticket.form.php?id={id_chamado}"
             )
         sucesso = enviar_mensagem_whatsapp(telefone, texto_msg)
